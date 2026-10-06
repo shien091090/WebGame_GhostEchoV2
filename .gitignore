@@ -1,0 +1,3 @@
+.lab/logs/
+.lab/*.sqlite-wal
+.lab/*.sqlite-shm
