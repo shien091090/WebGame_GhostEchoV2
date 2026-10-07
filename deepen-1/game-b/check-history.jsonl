@@ -1,0 +1,2 @@
+{"retries": 0, "ok": false, "errors": [{"step": "interface", "message": "game.js 呼叫了介面沒有的 Art.drawXxx"}]}
+{"retries": 1, "ok": true, "errors": []}
