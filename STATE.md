@@ -1,6 +1,6 @@
 stage: polish(打磨)
-rounds: 探索 1, 深掘 2, 打磨 1
-current: polish-1
+rounds: 探索 1, 深掘 2, 打磨 2
+current: polish-2
 status: 等待試玩回饋
 log:
 - 2026-10-07 建立專案, 玩法寫入 idea.md
@@ -11,3 +11,5 @@ log:
 - 2026-10-07 深掘第2輪設計完成, 3 款: game-a, game-b, game-c
 - 2026-10-07 深掘第2輪檢討假設完成, 選擇: next
 - 2026-10-07 打磨第1輪設計完成, 1 款: game
+- 2026-10-08 打磨第1輪檢討假設完成, 選擇: continue
+- 2026-10-08 打磨第2輪設計完成, 1 款: game
