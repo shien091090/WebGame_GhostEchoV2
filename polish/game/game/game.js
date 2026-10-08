@@ -80,7 +80,7 @@
     },
     { // 6
       title: '叫他回來', hint: '吹哨, 讓他再踩一次按鈕', newThing: 'button',
-      platforms: [], spikes: [], walls: [],
+      platforms: [], spikes: [{ x: 0, y: 1176, w: 40 }], walls: [],
       button: { x: 100, y: 1188 }, crusher: { x: 200, w: 340, up: 1110, down: 1200 },
       goal: { x: 552, y: 1120 }
     },
