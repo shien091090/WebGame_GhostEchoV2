@@ -1,6 +1,0 @@
-{
-  "targets": {
-    "rd": "game/game.js 的 render() 說明頁分支(約第 271~275 行)呼叫了 interface.json 沒有的 Art.drawGuidePage(ctx, {page: Game.guidePage}), 必須移除這個呼叫。interface.json 的 draw 清單只有 drawBackground / drawPlatform / drawSpike / drawGoal / drawGhost / drawHook / drawPlayer / drawHud 八個, 說明頁沒有對應的介面函式。改法: 說明頁底圖改用介面內的 Art.drawBackground(ctx, {}) 先畫背景, 再用既有的 Placeholder.guideText(...) 疊文字(Placeholder 內的半透明色塊與文字原本就能獨立成頁); 若想更好看, 可在 Placeholder 內自己補一個簡單的說明頁插圖(Canvas 基本圖形), 但全部寫在 game.js 內, 不得再呼叫任何介面外的 Art.xxx。同步更新第 25 行註解(不再說 Art.drawGuidePage)。改完後 game.js 內所有 Art.drawXxx 呼叫只能是介面清單中的八個, 欄位名稱維持現狀(drawGhost/drawHook/drawPlayer/drawHud 的欄位目前都符合介面)。"
-  },
-  "reason": "接合檢查失敗原因是 game.js 呼叫了介面外的 Art.drawGuidePage; 介面 interface.json 只定義八個繪圖函式, 說明頁不在其中(只給 guidePages 頁數), 所以是 RD 越界呼叫, 應由 RD 改成自行處理說明頁畫面, 美術的 art.js 多給一個函式無害, 不需退回。"
-}
