@@ -1,4 +1,4 @@
-/* 幽影接力 打磨版第 5 輪 — 邏輯 + 嵌入式新手教學 + 呼叫 Art / Sound */
+/* 幽影接力 打磨版第 6 輪 — 邏輯 + 嵌入式新手教學 + 呼叫 Art / Sound */
 (function () {
   'use strict';
 
@@ -6,18 +6,17 @@
   var DT = 1 / 60;
   var G = 2400, JUMP_V = 900, WALK = 260;
   var PW = 40, PH = 56;
-  var GROUND = { x: 0, y: 1200, w: 600, h: 80, solid: true };
   var SPAWN = { x: 60, y: 1144 };
   var HOOK_RANGE = 220, HOOK_AIR = 1700, HOOK_GND = 800, CHARGE_T = 1;
   var LAUNCH_T = 0.3, ROPE_T = 0.15, LIFT_SPD = 200, SEESAW_V = 1900, SEESAW_T = 0.3;
   var DEATH_T = 0.6, REC_MAX = 3600, ROUTE_N = 300, RING_T = 0.4;
   var LEVEL_COUNT = 7, MAX_GEN = 3, HOOK_MAX = 2;
-  var CR_UP_F = 72, CR_WARN_F = 18, CR_SPD = 600, CR_TOP = 100;
+  var CR_WARN_F = 18, CR_SPD = 600, CR_TOP = 100;
   var CEILING = 100, TIME_WARN_F = 600, TICK_S = 5;
   var CW = (window.Art && Art.canvas && Art.canvas.width) || 720;
   var CH = (window.Art && Art.canvas && Art.canvas.height) || 1280;
 
-  var BUILD = 'polish-5';
+  var BUILD = 'polish-6';
   var BANNER_T = 1.5, TUT_FX_T = 0.8, TUT_GAP = 0.4, TUT_POP_T = 0.25;
   // (本輪沒有需要的佔位圖形)
 
@@ -59,14 +58,14 @@
     { // 6
       title: '叫他回來', hint: '吹哨, 讓他再踩一次按鈕', newThing: 'button',
       platforms: [], spikes: [{ x: 0, y: 1176, w: 40 }], walls: [],
-      button: { x: 100, y: 1188 }, crusher: { x: 200, w: 340, up: 1110, down: 1200 },
-      goal: { x: 552, y: 1120 }
+      button: { x: 100, y: 1188 }, crusher: { x: 200, w: 460, up: 1110, down: 1200, riseF: 102 }, groundW: 720,
+      goal: { x: 672, y: 1120 }
     },
     { // 7
       title: '撐住壓板', hint: '這次壓板在最上層', newThing: 'final',
       platforms: [P_(340, 520, 320), P_(0, 260, 500, true), P_(500, 260, 220)], spikes: [], walls: [],
       seesaws: [{ x: 300, y: 1188 }],
-      button: { x: 160, y: 1188 }, crusher: { x: 140, w: 360, up: 170, down: 260 },
+      button: { x: 160, y: 1188 }, crusher: { x: 140, w: 360, up: 170, down: 260, riseF: 72 },
       goal: { x: 40, y: 180 }
     }
   ];
@@ -91,13 +90,13 @@
   };
   var cmd = { z: false, x: false, c: false, r: false, jump: false };
   var keys = { left: false, right: false, jump: false };
-  var jumpDown = { Space: false, ArrowUp: false };
+  var jumpDown = { ArrowUp: false };
   var events = [];
   var t0 = nowMs(), sessionStartISO = isoNow();
   var firstInput = false;
   var curMusic = null;
 
-  function clearJump() { jumpDown.Space = false; jumpDown.ArrowUp = false; keys.jump = false; cmd.jump = false; }
+  function clearJump() { jumpDown.ArrowUp = false; keys.jump = false; cmd.jump = false; }
   function nowMs() { return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
   function isoNow() {
     var d = new Date(), tz = -d.getTimezoneOffset(), a = Math.abs(tz);
@@ -165,11 +164,11 @@
   }
 
   // ===== 世界(機關狀態) =====
-  function newCrusher(cd) { return { cdF: 0, bottom: cd.down, up: cd.up, down: cd.down, falling: false, warned: false, upF: 0 }; }
+  function newCrusher(cd) { return { riseF: cd.riseF, cdF: 0, bottom: cd.down, up: cd.up, down: cd.down, falling: false, warned: false, upF: 0 }; }
   function newWorld(lv) {
     var L = LEVELS[lv];
     return {
-      lv: lv, L: L,
+      lv: lv, L: L, ground: { x: 0, y: 1200, w: L.groundW || 600, h: 80, solid: true },
       liftY: 1200, liftDir: 0, liftActive: false,
       gateOpen: false, gateT: 0,
       seesaws: (L.seesaws || []).map(function (s) { return { x: s.x, y: s.y, age: -1, tilt: 0 }; }),
@@ -186,7 +185,7 @@
   }
   // 實心物(地面、牆、關著的門、實心平台); 壓板另外處理
   function solidsOf(W) {
-    var L = W.L, a = [GROUND];
+    var L = W.L, a = [W.ground];
     L.platforms.forEach(function (p) { if (p.solid) a.push(p); });
     L.walls.forEach(function (w) { a.push(w); });
     if (L.gate && !W.gateOpen) a.push({ x: L.gate.x, y: L.gate.y, w: 24, h: 220 });
@@ -256,7 +255,7 @@
       if (C.bottom >= C.down) { C.falling = false; snd('crusherSlam'); }
     }
   }
-  function crusherHold(C) { return C && C.cdF > 0 ? C.cdF / CR_UP_F : 0; }
+  function crusherHold(C) { return C && C.cdF > 0 ? C.cdF / C.riseF : 0; }
   function crusherWarn(C) { return !!(C && C.cdF > 0 && C.cdF <= CR_WARN_F); }
   // 實體: {x, y, g(著地)}
   function platePressed(plate, ents) {
@@ -401,7 +400,7 @@
   function fireButton(by) {
     var C = S.W.cr; if (!C) return;
     if (C.cdF <= 0) snd('crusherRise');
-    C.cdF = CR_UP_F; C.warned = false;
+    C.cdF = C.riseF; C.warned = false;
     snd('buttonPress');
     emit('button', { attempt: S.attempt, gen: S.gen, by: by });
     if (by === 'player') tEvent('button');
@@ -581,7 +580,7 @@
         var chk = (prevTop === undefined) ? top : prevTop;
         if (oldFeet <= chk + 0.01 && newFeet >= top) { if (!best || top < best.top) best = { top: top, src: src }; }
       };
-      consider(GROUND.y, GROUND.x, GROUND.x + GROUND.w, 'ground');
+      consider(W.ground.y, W.ground.x, W.ground.x + W.ground.w, 'ground');
       L.platforms.forEach(function (p) { consider(p.y, p.x, p.x + p.w, 'plat'); });
       if (L.lift) consider(W.liftY, L.lift.x, L.lift.x + 120, 'lift');
       L.walls.forEach(function (w) { consider(w.y, w.x, w.x + w.w, 'plat'); });
@@ -737,7 +736,7 @@
   function drawWorld(ctx, W, cue) {
     var L = W.L;
     Art.drawBackground(ctx, { level: W.lv });
-    Art.drawPlatform(ctx, { x: GROUND.x, y: GROUND.y, w: GROUND.w, h: GROUND.h, solid: true });
+    Art.drawPlatform(ctx, { x: W.ground.x, y: W.ground.y, w: W.ground.w, h: W.ground.h, solid: true });
     L.platforms.forEach(function (p) { Art.drawPlatform(ctx, { x: p.x, y: p.y, w: p.w, h: p.h, solid: !!p.solid }); });
     L.walls.forEach(function (w) { Art.drawWall(ctx, { x: w.x, y: w.y, w: w.w, h: w.h }); });
     L.spikes.forEach(function (s) { Art.drawSpike(ctx, { x: s.x, y: s.y, w: s.w }); });
@@ -817,7 +816,7 @@
   // ===== 新手教學(狀態機; 畫面交給 Art.drawTutorial) =====
   var T = {
     st: {}, cur: null, popT: 0, fx: null, block: 0,
-    mk: { left: false, right: false, jump: false },
+    mk: { left: false, right: false, up: false },
     whistleFlag: false, crushPending: false, chainArmed: false
   };
   var T_MAIN = ['move', 'die', 'head', 'hookAim', 'hookFire', 'gate', 'lift', 'seesaw', 'button', 'whistle'];
@@ -874,7 +873,7 @@
       case 'button': return L === 6 && (st.live || (S.gen === 1 && rl >= 18));
       case 'whistle': return L === 6 && T.st.button.done && !!S.ghost && S.tb !== null;
       case 'chain': return (L === 6 || L === 7) && T.chainArmed && !!S.ghost && !!(W && W.cr);
-      case 'slow': return (L === 6 || L === 7) && !!S.ghost && S.tb !== null && S.tb >= CR_UP_F && S.lateWhistle;
+      case 'slow': return (L === 6 || L === 7) && !!(W && W.cr) && !!S.ghost && S.tb !== null && S.tb >= W.cr.riseF && (S.lateWhistle || S.gen === 3);
       case 'stuck': return S.timeWarned;
     }
     return false;
@@ -944,7 +943,7 @@
     if (T.cur !== 'move' || S.screen !== 'play' || S.phase !== 'play' || S.aiming) return;
     if (T.mk[k]) return;
     T.mk[k] = true;
-    var n = (T.mk.left ? 1 : 0) + (T.mk.right ? 1 : 0) + (T.mk.jump ? 1 : 0);
+    var n = (T.mk.left ? 1 : 0) + (T.mk.right ? 1 : 0) + (T.mk.up ? 1 : 0);
     emit('tutorial_key', { stage: 'move', key: k, attempt: S.attempt, gen: S.gen });
     snd('tutorialKey', { n: n });
     if (n >= 3) tComplete('move', false);
@@ -995,7 +994,7 @@
       id = T.cur; d = TD[id];
       a = tAnchor(d, false);
       pop = Math.min(1, T.popT / TUT_POP_T);
-      pressed = id === 'move' ? [T.mk.left, T.mk.right, T.mk.jump] : d.keys.map(function () { return false; });
+      pressed = id === 'move' ? [T.mk.left, T.mk.right, T.mk.up] : d.keys.map(function () { return false; });
     } else return null;
     if (!a) return null;
     var mark = null;
@@ -1038,8 +1037,6 @@
         } else { S.level++; startLevel('first'); }
       } else if (S.phase === 'lose') {
         startLevel('retry');
-      } else if (S.phase === 'play' && !S.aiming) {
-        jumpDown.Space = true; refreshJump(); tKey('jump');
       }
     }
   }
@@ -1061,7 +1058,7 @@
     emit('mute', { muted: S.muted });
   }
   var GAME_KEYS = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, Space: 1, KeyZ: 1, KeyX: 1, KeyC: 1, KeyR: 1, KeyM: 1 };
-  function refreshJump() { keys.jump = jumpDown.Space || jumpDown.ArrowUp; if (keys.jump) cmd.jump = true; }
+  function refreshJump() { keys.jump = jumpDown.ArrowUp; if (keys.jump) cmd.jump = true; }
   function onKeyDown(e) {
     if (e.repeat) { if (GAME_KEYS[e.code]) e.preventDefault(); return; }
     if (GAME_KEYS[e.code]) e.preventDefault();
@@ -1073,7 +1070,7 @@
     if (c === 'KeyM') { toggleMute(); return; }
     var playing = S.screen === 'play' && S.phase !== 'win' && S.phase !== 'lose';
     if (c === 'Space') { onSpace(); return; }
-    if (c === 'ArrowUp') { if (S.screen === 'play' && S.phase === 'play' && !S.aiming) { jumpDown.ArrowUp = true; refreshJump(); tKey('jump'); } return; }
+    if (c === 'ArrowUp') { if (S.screen === 'play' && S.phase === 'play' && !S.aiming) { jumpDown.ArrowUp = true; refreshJump(); tKey('up'); } return; }
     if (c === 'ArrowLeft') {
       keys.left = true; tKey('left');
       return;
@@ -1093,9 +1090,9 @@
     var c = e.code;
     if (c === 'ArrowLeft') keys.left = false;
     else if (c === 'ArrowRight') keys.right = false;
-    else if (c === 'Space' || c === 'ArrowUp') { jumpDown[c] = false; refreshJump(); }
+    else if (c === 'ArrowUp') { jumpDown.ArrowUp = false; refreshJump(); }
   }
-  function onBlur() { keys.left = keys.right = false; jumpDown.Space = jumpDown.ArrowUp = false; keys.jump = false; }
+  function onBlur() { keys.left = keys.right = false; jumpDown.ArrowUp = false; keys.jump = false; }
 
   // ===== 啟動 =====
   var canvas, ctx;

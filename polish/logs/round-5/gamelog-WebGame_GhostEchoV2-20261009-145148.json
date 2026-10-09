@@ -1,0 +1,162 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-5",
+ "sessionStart": "2026-10-09T14:50:24+08:00",
+ "downloadedAt": "2026-10-09T14:51:48+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "level_start",
+   "t": 62559,
+   "level": 3,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 62559,
+   "level": 3,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_show",
+   "t": 63035,
+   "level": 3,
+   "stage": "gate",
+   "attempt": 1,
+   "gen": 1,
+   "count": 1
+  },
+  {
+   "type": "gen_end",
+   "t": 66167,
+   "level": 3,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 218,
+   "minFeetY": 1031,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 56.4
+  },
+  {
+   "type": "gen_start",
+   "t": 66771,
+   "level": 3,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "hook",
+   "t": 69167,
+   "level": 3,
+   "attempt": 1,
+   "gen": 2,
+   "result": "launch",
+   "ghostAir": true,
+   "charge": 1,
+   "x": 264,
+   "y": 1144
+  },
+  {
+   "type": "tutorial_done",
+   "t": 70272,
+   "level": 3,
+   "stage": "gate",
+   "attempt": 1,
+   "gen": 2,
+   "showTime": 7236,
+   "auto": false,
+   "x": 351,
+   "y": 724
+  },
+  {
+   "type": "gen_end",
+   "t": 75021,
+   "level": 3,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "spike",
+   "x": 56,
+   "y": 724,
+   "duration": 425,
+   "minFeetY": 598,
+   "hooksUsed": 1,
+   "whistles": 0,
+   "timeLeft": 52.9
+  },
+  {
+   "type": "gen_start",
+   "t": 75619,
+   "level": 3,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "hook",
+   "t": 79584,
+   "level": 3,
+   "attempt": 1,
+   "gen": 3,
+   "result": "cancel",
+   "ghostAir": true,
+   "charge": 0.83,
+   "x": 299,
+   "y": 724
+  },
+  {
+   "type": "hook",
+   "t": 80473,
+   "level": 3,
+   "attempt": 1,
+   "gen": 3,
+   "result": "cancel",
+   "ghostAir": false,
+   "charge": 0.43,
+   "x": 229,
+   "y": 724
+  },
+  {
+   "type": "hook",
+   "t": 82188,
+   "level": 3,
+   "attempt": 1,
+   "gen": 3,
+   "result": "launch",
+   "ghostAir": true,
+   "charge": 1,
+   "x": 238,
+   "y": 724
+  },
+  {
+   "type": "gen_end",
+   "t": 84022,
+   "level": 3,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 602,
+   "y": 304,
+   "duration": 358,
+   "minFeetY": 182,
+   "hooksUsed": 1,
+   "whistles": 0,
+   "timeLeft": 54
+  },
+  {
+   "type": "level_win",
+   "t": 84022,
+   "level": 3,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 21463,
+   "levelTime": 21463,
+   "fails": 0,
+   "restarts": 0
+  }
+ ]
+}

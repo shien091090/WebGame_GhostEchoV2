@@ -1,0 +1,163 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-5",
+ "sessionStart": "2026-10-09T14:52:20+08:00",
+ "downloadedAt": "2026-10-09T14:52:39+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "session_start",
+   "t": 0,
+   "level": null,
+   "levelCount": 7
+  },
+  {
+   "type": "title_start",
+   "t": 603,
+   "level": null,
+   "waitTime": 603
+  },
+  {
+   "type": "level_start",
+   "t": 603,
+   "level": 1,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 604,
+   "level": 1,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_show",
+   "t": 1080,
+   "level": 1,
+   "stage": "move",
+   "attempt": 1,
+   "gen": 1,
+   "count": 1
+  },
+  {
+   "type": "tutorial_key",
+   "t": 1843,
+   "level": 1,
+   "stage": "move",
+   "key": "right",
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "gen_end",
+   "t": 3364,
+   "level": 1,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 167,
+   "minFeetY": 1200,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 57.2
+  },
+  {
+   "type": "tutorial_skip",
+   "t": 3365,
+   "level": 1,
+   "stage": "move",
+   "shown": true
+  },
+  {
+   "type": "tutorial_done",
+   "t": 3365,
+   "level": 1,
+   "stage": "die",
+   "attempt": 1,
+   "gen": 1,
+   "showTime": 0,
+   "auto": true,
+   "x": 680,
+   "y": 1291
+  },
+  {
+   "type": "gen_start",
+   "t": 3969,
+   "level": 1,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "tutorial_show",
+   "t": 3969,
+   "level": 1,
+   "stage": "head",
+   "attempt": 1,
+   "gen": 2,
+   "count": 1
+  },
+  {
+   "type": "tutorial_done",
+   "t": 8115,
+   "level": 1,
+   "stage": "head",
+   "attempt": 1,
+   "gen": 2,
+   "showTime": 4146,
+   "auto": false,
+   "x": 350,
+   "y": 1088
+  },
+  {
+   "type": "gen_end",
+   "t": 12184,
+   "level": 1,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "pit",
+   "x": 680,
+   "y": 1297,
+   "duration": 494,
+   "minFeetY": 821,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 51.8
+  },
+  {
+   "type": "gen_start",
+   "t": 12781,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "gen_end",
+   "t": 19163,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 86,
+   "y": 724,
+   "duration": 384,
+   "minFeetY": 633,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 53.6
+  },
+  {
+   "type": "level_win",
+   "t": 19163,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 18560,
+   "levelTime": 18560,
+   "fails": 0,
+   "restarts": 0
+  }
+ ]
+}

@@ -1,0 +1,195 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-5",
+ "sessionStart": "2026-10-09T14:50:24+08:00",
+ "downloadedAt": "2026-10-09T14:50:59+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "session_start",
+   "t": 2,
+   "level": null,
+   "levelCount": 7
+  },
+  {
+   "type": "title_start",
+   "t": 4990,
+   "level": null,
+   "waitTime": 4990
+  },
+  {
+   "type": "level_start",
+   "t": 4990,
+   "level": 1,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 4991,
+   "level": 1,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_show",
+   "t": 5472,
+   "level": 1,
+   "stage": "move",
+   "attempt": 1,
+   "gen": 1,
+   "count": 1
+  },
+  {
+   "type": "tutorial_key",
+   "t": 6396,
+   "level": 1,
+   "stage": "move",
+   "key": "right",
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_key",
+   "t": 6838,
+   "level": 1,
+   "stage": "move",
+   "key": "left",
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_key",
+   "t": 7735,
+   "level": 1,
+   "stage": "move",
+   "key": "jump",
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_done",
+   "t": 7735,
+   "level": 1,
+   "stage": "move",
+   "attempt": 1,
+   "gen": 1,
+   "showTime": 2263,
+   "auto": false,
+   "x": 251,
+   "y": 1144
+  },
+  {
+   "type": "tutorial_show",
+   "t": 8916,
+   "level": 1,
+   "stage": "die",
+   "attempt": 1,
+   "gen": 1,
+   "count": 1
+  },
+  {
+   "type": "gen_end",
+   "t": 13667,
+   "level": 1,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 522,
+   "minFeetY": 1031,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 51.3
+  },
+  {
+   "type": "tutorial_done",
+   "t": 13667,
+   "level": 1,
+   "stage": "die",
+   "attempt": 1,
+   "gen": 1,
+   "showTime": 4750,
+   "auto": false,
+   "x": 680,
+   "y": 1291
+  },
+  {
+   "type": "gen_start",
+   "t": 14271,
+   "level": 1,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "tutorial_show",
+   "t": 14868,
+   "level": 1,
+   "stage": "head",
+   "attempt": 1,
+   "gen": 2,
+   "count": 1
+  },
+  {
+   "type": "tutorial_done",
+   "t": 16139,
+   "level": 1,
+   "stage": "head",
+   "attempt": 1,
+   "gen": 2,
+   "showTime": 1271,
+   "auto": false,
+   "x": 229,
+   "y": 1088
+  },
+  {
+   "type": "gen_end",
+   "t": 21889,
+   "level": 1,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "pit",
+   "x": 680,
+   "y": 1297,
+   "duration": 458,
+   "minFeetY": 807,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 52.4
+  },
+  {
+   "type": "gen_start",
+   "t": 22486,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "gen_end",
+   "t": 34854,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 86,
+   "y": 724,
+   "duration": 743,
+   "minFeetY": 587,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 47.6
+  },
+  {
+   "type": "level_win",
+   "t": 34855,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 29865,
+   "levelTime": 29865,
+   "fails": 0,
+   "restarts": 0
+  }
+ ]
+}

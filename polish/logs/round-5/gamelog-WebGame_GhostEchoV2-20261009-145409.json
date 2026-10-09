@@ -1,0 +1,126 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-5",
+ "sessionStart": "2026-10-09T14:52:20+08:00",
+ "downloadedAt": "2026-10-09T14:54:09+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "level_start",
+   "t": 79094,
+   "level": 4,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 79094,
+   "level": 4,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_show",
+   "t": 79567,
+   "level": 4,
+   "stage": "lift",
+   "attempt": 1,
+   "gen": 1,
+   "count": 1
+  },
+  {
+   "type": "tutorial_done",
+   "t": 80734,
+   "level": 4,
+   "stage": "lift",
+   "attempt": 1,
+   "gen": 1,
+   "showTime": 1167,
+   "auto": false,
+   "x": 121,
+   "y": 1144
+  },
+  {
+   "type": "gen_end",
+   "t": 87185,
+   "level": 4,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 487,
+   "minFeetY": 1200,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 51.9
+  },
+  {
+   "type": "gen_start",
+   "t": 87782,
+   "level": 4,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "gen_end",
+   "t": 98220,
+   "level": 4,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "spike",
+   "x": 56,
+   "y": 724,
+   "duration": 627,
+   "minFeetY": 611,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 49.6
+  },
+  {
+   "type": "gen_start",
+   "t": 98817,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "hook",
+   "t": 107602,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "result": "launch",
+   "ghostAir": true,
+   "charge": 1,
+   "x": 359,
+   "y": 724
+  },
+  {
+   "type": "gen_end",
+   "t": 109664,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 602,
+   "y": 304,
+   "duration": 577,
+   "minFeetY": 223,
+   "hooksUsed": 1,
+   "whistles": 0,
+   "timeLeft": 50.4
+  },
+  {
+   "type": "level_win",
+   "t": 109665,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 30571,
+   "levelTime": 30571,
+   "fails": 0,
+   "restarts": 0
+  }
+ ]
+}

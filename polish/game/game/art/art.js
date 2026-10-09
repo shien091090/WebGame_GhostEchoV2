@@ -624,7 +624,7 @@
     return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2);
   }
   function tutKeyLabel(k) {
-    return k === 'left' ? '←' : k === 'right' ? '→' : k === 'jump' ? '空白鍵' : String(k);
+    return k === 'left' ? '←' : k === 'right' ? '→' : k === 'jump' ? '↑' : String(k);
   }
   function tutKeyWidth(ctx, k) {
     ctx.save();
@@ -907,12 +907,14 @@
       for (var gx = 0; gx <= W; gx += 60) { ctx.moveTo(gx + 0.5, HUD_H); ctx.lineTo(gx + 0.5, H); }
       for (var gy = HUD_H; gy <= H; gy += 60) { ctx.moveTo(0, gy + 0.5); ctx.lineTo(W, gy + 0.5); }
       ctx.stroke();
-      // 坑底的暗紅警示(每關都在 x 600~720)
-      var pg = ctx.createLinearGradient(0, 1210, 0, H);
-      pg.addColorStop(0, 'rgba(255,77,77,0)');
-      pg.addColorStop(1, 'rgba(255,77,77,0.22)');
-      ctx.fillStyle = pg;
-      ctx.fillRect(600, 1210, 120, 70);
+      // 坑底的暗紅警示(x 600~720; 第 6 關沒有坑, 不畫)
+      if (level !== 6) {
+        var pg = ctx.createLinearGradient(0, 1210, 0, H);
+        pg.addColorStop(0, 'rgba(255,77,77,0)');
+        pg.addColorStop(1, 'rgba(255,77,77,0.22)');
+        ctx.fillStyle = pg;
+        ctx.fillRect(600, 1210, 120, 70);
+      }
       // 升降台軌道: 只有有升降台的關(4)
       if (level === 4) liftRail(ctx, 480, 780, 1200);
       ctx.restore();
@@ -1162,7 +1164,9 @@
       var x = s.x, w = s.w || 360, top = s.top == null ? HUD_H : s.top, bottom = s.bottom == null ? 360 : s.bottom;
       var hold = Math.max(0, Math.min(1, s.hold || 0));
       var SH = 20, bodyB = bottom - SH;
-      var rem = hold * 1.2;
+      // 升起時間: interface 沒傳, 依柱長判斷 — 第 6 關巨柱(約 1100 高)1.7 秒, 第 7 關短柱(約 160 高)1.2 秒
+      var rise = (bottom - top) > 600 ? 1.7 : 1.2;
+      var rem = hold * rise;
       var flashOn = !!s.warn && hold > 0 && (Math.floor(rem / 0.075) % 2 === 0);
       // 本體: 暗色實心(實心擋路), 兩側壓板色亮邊
       ctx.fillStyle = C.crusherBody;
@@ -1189,8 +1193,8 @@
         rr(ctx, tx - 3, ty - 3, tw + 6, th + 6, 6);
         ctx.fillStyle = 'rgba(8,10,18,0.85)';
         ctx.fill();
-        // 最後 0.3 秒那一段(左側 1/4)預先染暗紅: 量條縮進這段 = 快落下了
-        var wz = tw * 0.3 / 1.2;
+        // 最後 0.3 秒那一段(左側 0.3 / 升起時間)預先染暗紅: 量條縮進這段 = 快落下了
+        var wz = tw * 0.3 / rise;
         ctx.fillStyle = 'rgba(255,77,77,0.22)';
         ctx.fillRect(tx, ty, wz, th);
         if (hold > 0) {
@@ -1202,7 +1206,7 @@
         }
         // 每 0.3 秒一格刻度
         ctx.fillStyle = 'rgba(8,10,18,0.9)';
-        for (var k = 1; k < 4; k++) ctx.fillRect(tx + tw * k / 4 - 1, ty, 2, th);
+        for (var k = 1; k * 0.3 < rise - 0.05; k++) ctx.fillRect(tx + tw * (k * 0.3) / rise - 1, ty, 2, th);
       }
       // 節奏燈: 右端; ok 時燈左邊一個 C 鍵帽(與 Z / X 同一種鍵帽, 外框用綠燈色)
       var cue = s.cue || 'none';

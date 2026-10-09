@@ -1,6 +1,8 @@
-# 幽影接力 音效說明(polish-5)
+# 幽影接力 音效說明(polish-6)
 
-相對 polish-4:
+相對 polish-5: **音效、音樂完全不變**(spec 打磨第 6 輪明訂), 事件名、opts、素材、音量、呼叫時機都照舊, RD 不用改接法。唯一的文字修正: 第 1 階段的跳躍鍵帽改成只有 ↑(空白鍵不算打勾), 「同時觸發」表的例子跟著改。
+
+(polish-5 相對 polish-4:)
 - **新增 3 個事件, 需要 RD 接**: `tutorialShow`(教學泡泡彈出)、`tutorialKey`(第 1 階段鍵帽打勾, 帶 `index`)、`tutorialDone`(教學階段完成)。interface.json 的 33 個事件、4 首曲名與本表一一對應
 - `uiPage` 只改呼叫時機(開始畫面、解鎖頁、全破畫面按空白鍵), 素材與音量不變
 - `title` 曲改在開始畫面 / 解鎖頁播(沒有說明頁、關卡卡片了), 曲子不變
@@ -127,7 +129,7 @@ Sound.play('tutorialDone');
 | 連按 Z 被拒: hookDenied 反覆 | 0.08 秒內重複只響一次; 低音、短、小聲, 不會變成警報 |
 | 空中按 Z: hookDenied + 同時起跳的 jump | 照叫; 兩者音高差很多(jump 上揚、hookDenied 低悶) |
 | 第 1 階段按跳: jump + tutorialKey 同一幀 | 照叫; 「叮」是 1 kHz 上下的定音, jump 是滑音, 聽得出兩聲 |
-| 同一幀兩個鍵一起打勾(例: → 和空白鍵同時按) | 叫兩次 tutorialKey(index 各自給); 第二聲自動往後錯開 0.07 秒, 聽起來是「叮、叮」不是一聲 |
+| 同一幀兩個鍵一起打勾(例: → 和 ↑ 同時按) | 叫兩次 tutorialKey(index 各自給); 第二聲自動往後錯開 0.07 秒, 聽起來是「叮、叮」不是一聲 |
 | 第三個鍵打勾 → 第 1 階段完成: tutorialKey + tutorialDone 同一幀 | 照叫; tutorialDone 會自動延後到「叮」之後 0.12 秒, 聽起來是集滿點數 → 小成就 |
 | tutorialDone 與 headStand / hookLaunch / buttonPress 同一幀 | 照叫; tutorialDone 音量 0.28 / 0.18, 比這三個(0.50~0.60)小一號, 動作聲在前面 |
 | tutorialDone(0.8 秒特效)之後下一個泡泡: tutorialShow | 各自照叫; 琶音約 0.4 秒就結束, 不重疊 |
