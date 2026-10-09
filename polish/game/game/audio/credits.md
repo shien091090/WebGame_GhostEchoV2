@@ -1,6 +1,6 @@
 # 音訊素材署名
 
-本作 `assets/` 內共 34 個檔案, 每檔一列。音效全部是 CC0(不需署名, 仍列出來源); 背景音樂是 CC BY 4.0, **遊戲畫面上(例: 全破畫面或說明頁最後)必須放署名**, 署名文字見本檔最下方。
+本作 `assets/` 內共 40 個檔案, 每檔一列。音效全部是 CC0(不需署名, 仍列出來源); 背景音樂是 CC BY 4.0, **遊戲畫面上(例: 全破畫面或說明頁最後)必須放署名**, 署名文字見本檔最下方。
 
 `sound.js` 尾端內嵌的資料就是這些檔案(音效以 PCM、音樂以原 mp3 位元組 base64 內嵌), 不另計來源。
 
@@ -42,6 +42,12 @@
 | sfx_ui_page.wav | uiPage | sfx_menu_move2.wav | Juhani Junkala | CC0 | 無 |
 | sfx_time_tick.wav | timeTick(polish-3 新增) | sfx_sounds_Blip1.wav | Juhani Junkala | CC0 | 前 5 毫秒後加指數衰減(時間常數 30 毫秒), 原檔是平坦方波 |
 | sfx_hook_denied.wav | hookDenied(polish-3 新增) | sfx_sounds_Blip7.wav | Juhani Junkala | CC0 | 前 5 毫秒後加指數衰減(時間常數 18 毫秒), 原檔是平坦方波 |
+| sfx_tutorial_show.wav | tutorialShow(polish-5 新增) | sfx_menu_move3.wav | Juhani Junkala | CC0 | 加速 1.25 倍(音高跟著升高); 前 5 毫秒後加指數衰減(時間常數 25 毫秒), 原檔是平坦方波 |
+| sfx_tutorial_key1.wav | tutorialKey(index 0, polish-5 新增) | sfx_coin_single5.wav | Juhani Junkala | CC0 | 放慢為 0.75 倍(音高約 960 Hz) |
+| sfx_tutorial_key2.wav | tutorialKey(index 1, polish-5 新增) | sfx_coin_single5.wav | Juhani Junkala | CC0 | 變速為 0.945 倍(比 key1 高大三度, 約 1225 Hz) |
+| sfx_tutorial_key3.wav | tutorialKey(index 2, polish-5 新增) | sfx_coin_single5.wav | Juhani Junkala | CC0 | 變速為 1.124 倍(比 key1 高純五度, 約 1425 Hz) |
+| sfx_tutorial_done.wav | tutorialDone(琶音, polish-5 新增) | sfx_sounds_powerup10.wav | Juhani Junkala | CC0 | 無 |
+| sfx_tutorial_sparkle.wav | tutorialDone(閃亮聲, polish-5 新增) | sfx_coin_double4.wav | Juhani Junkala | CC0 | 無 |
 
 ## 背景音樂(CC BY 4.0)
 

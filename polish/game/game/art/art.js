@@ -1,6 +1,7 @@
 // 幽影接力(打磨版) — 美術繪圖模組(全 Canvas 2D 幾何, 無外部資源)
 // 契約: 依 interface.json; 每個函式自己 save / restore。沿用 polish-1 的視覺語言(polish-2: 移除鑰匙與鎖, 新增按鈕、尖刺壓板、實心平台、貼物件的鍵帽提示)。
 // polish-3: HUD 計時器、幽靈「等它跳」、壓板節奏燈、關卡卡片 final、七關。
+// polish-5: 刪說明頁; 新增開始畫面(drawTitle)、新手教學泡泡(drawTutorial); 關卡卡片改開場橫幅(drawLevelBanner); 解鎖頁只留標題 + 大圖示。
 (function () {
   'use strict';
 
@@ -82,17 +83,17 @@
     ctx.restore();
   }
 
-  function keycap(ctx, label, x, y, size) {
-    // x,y 為中心; 回傳寬度
+  function keycap(ctx, label, x, y, size, fill, edge) {
+    // x,y 為中心; 回傳寬度。fill / edge 只給教學泡泡的「已按過」用
     size = size || 40;
     ctx.save();
     ctx.font = 'bold ' + Math.round(size * 0.5) + 'px ' + FONT;
     var w = Math.max(size, ctx.measureText(label).width + size * 0.5);
     rr(ctx, x - w / 2, y - size / 2, w, size, 7);
-    ctx.fillStyle = '#e9ecf5';
+    ctx.fillStyle = fill || '#e9ecf5';
     ctx.fill();
     ctx.lineWidth = 3;
-    ctx.strokeStyle = '#5a6380';
+    ctx.strokeStyle = edge || '#5a6380';
     ctx.stroke();
     ctx.fillStyle = '#1a1f2e';
     ctx.textAlign = 'center';
@@ -600,298 +601,220 @@
     ctx.restore();
   }
 
-  // ---------- 說明頁 / 解鎖頁示意圖(參考框 640 x 760, 外部縮放進指定框) ----------
-  var REF_W = 640, REF_H = 760;
+  // ---------- 新手教學泡泡 ----------
+  // 淺色底深色字的圓角泡泡 + 指向錨點的尾巴; 鍵帽與遊戲內同一種(Z 加鉤爪色框、C 加綠燈色框)
+  var TUT = {
+    fill: '#f4f6fb',      // 泡泡底
+    edge: '#141420',      // 泡泡外框(深, 壓在任何底色上都讀得到)
+    ink: '#1a1f2e',       // 泡泡字
+    mark: '#eef1f8',      // 標示框(和泡泡同系的紙白, 不用紅)
+    done: '#2fe08a',      // 完成: 閃綠、大勾、已按過的鍵(= 綠燈色「對了 / 成立」)
+    doneDark: '#14824d',
+    keyOn: '#c9f7de'      // 已按過的鍵帽底
+  };
+  var TUT_PAD = 16, TUT_BH = 54, TUT_KEY = 32, TUT_GAP = 18, TUT_FONT = 24;
+  var tutKeySeen = {};
 
-  function label(ctx, s, x, y, size, color) {
-    text(ctx, s, x, y, size || 22, color || C.textDim);
+  function nowMs() {
+    return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  }
+  function clamp01(v) { return Math.max(0, Math.min(1, v || 0)); }
+  function easeOutBack(p) {
+    var c1 = 1.70158, c3 = c1 + 1;
+    return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2);
+  }
+  function tutKeyLabel(k) {
+    return k === 'left' ? '←' : k === 'right' ? '→' : k === 'jump' ? '空白鍵' : String(k);
+  }
+  function tutKeyWidth(ctx, k) {
+    ctx.save();
+    ctx.font = 'bold ' + Math.round(TUT_KEY * 0.5) + 'px ' + FONT;
+    var w = Math.max(TUT_KEY, ctx.measureText(tutKeyLabel(k)).width + TUT_KEY * 0.5);
+    ctx.restore();
+    return w;
   }
 
-  function cell(ctx, x, y, w, h) {
-    rr(ctx, x, y, w, h, 14);
-    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  function tutKey(ctx, k, cx, cy, pressed, bounce) {
+    var w = tutKeyWidth(ctx, k), s = TUT_KEY;
+    ctx.save();
+    ctx.translate(cx, cy - bounce * 7);
+    var sc = 1 + bounce * 0.2;
+    ctx.scale(sc, sc);
+    // 鍵帽厚度(淺色泡泡上讓鍵帽浮出來)
+    rr(ctx, -w / 2, -s / 2 + 4, w, s, 7);
+    ctx.fillStyle = pressed ? TUT.doneDark : '#3a4258';
     ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-    ctx.stroke();
-  }
-
-  function pathPoints(x0, y0, dir, n, jumpAt) {
-    var pts = [], x = x0, y = y0, vy = 0, air = false, ground = y0;
-    for (var i = 0; i < n; i++) {
-      pts.push({ x: x, y: y });
-      x += dir * 260 / 60;
-      if (i === jumpAt) { vy = -900; air = true; }
-      if (air) {
-        vy += 2400 / 60;
-        y += vy / 60;
-        if (y >= ground) { y = ground; air = false; vy = 0; }
-      }
+    keycap(ctx, tutKeyLabel(k), 0, 0, s, pressed ? TUT.keyOn : null, pressed ? TUT.doneDark : null);
+    // 系統框: Z = 鉤爪色、C = 綠燈色(與遊戲內幽靈旁 Z、節奏燈旁 C 相同)
+    if (!pressed && (k === 'Z' || k === 'C')) {
+      rr(ctx, -w / 2 - 3, -s / 2 - 3, w + 6, s + 6, 9);
+      ctx.lineWidth = 4.5;
+      ctx.strokeStyle = TUT.edge;
+      ctx.stroke();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = k === 'Z' ? C.hook : C.cueOk;
+      ctx.stroke();
     }
-    return pts;
-  }
-
-  function inBox(ctx, x, y, w, h, fn) {
-    // 把參考框 640x760 等比縮放置中到 (x,y,w,h), 並裁在框內
-    var s = Math.min(w / REF_W, h / REF_H);
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(x, y, w, h);
-    ctx.clip();
-    ctx.translate(x + (w - REF_W * s) / 2, y + (h - REF_H * s) / 2);
-    ctx.scale(s, s);
-    fn(ctx);
-    ctx.restore();
-  }
-
-  // 第 1 頁 走到旗子: 第 1 關縮圖 + 按鍵 + 靜音
-  function guide0(ctx, A) {
-    var s = REF_W / 720;
-    ctx.save();
-    ctx.scale(s, s);
-    ctx.translate(0, -620);
-    ctx.fillStyle = 'rgba(255,77,77,0.18)';
-    ctx.fillRect(600, 1220, 120, 60);
-    A.drawPlatform(ctx, { x: 0, y: 1200, w: 600, h: 80 });
-    A.drawPlatform(ctx, { x: 280, y: 990, w: 340, h: 24 });
-    A.drawPlatform(ctx, { x: 0, y: 780, w: 400, h: 24 });
-    A.drawGoal(ctx, { x: 40, y: 700 });
-    A.drawPlayer(ctx, { x: 60, y: 1144, facing: 1, state: 'idle', gen: 1 });
-    ctx.restore();
-    // 參考框座標: 角色 (53,463)~(89,513); 旗 (36,71)~(78,142)
-    label(ctx, '終點旗', 140, 110, 26, C.goal);
-    arrow(ctx, 104, 110, 84, 110, C.goal, 3, 12);
-    // 上方: 遊戲內 HUD 的計時器(同一個畫法, 顯示 60)
-    rr(ctx, 380, 0, 190, 88, 12);
-    ctx.fillStyle = C.hudBg;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = C.hudLine;
-    ctx.stroke();
-    ctx.save();
-    ctx.translate(402, -2);
-    hudTimer(ctx, 0, 60, 60);
-    ctx.restore();
-    label(ctx, '你', 71, 440, 26, C.text);
-    keycap(ctx, '←', 160, 386, 36);
-    keycap(ctx, '→', 204, 386, 36);
-    label(ctx, '走', 246, 386, 24, C.text);
-    var kw = keycap(ctx, '空白鍵', 142 + 40, 432, 36);
-    label(ctx, '跳', 142 + 40 + kw / 2 + 22, 432, 24, C.text);
-    keycap(ctx, 'R', 160, 478, 36);
-    label(ctx, '整關重來', 236, 478, 24, C.text);
-    // 角落: 靜音
-    keycap(ctx, 'M', 546, 708, 36);
-    speaker(ctx, 600, 708, false);
-    label(ctx, '靜音', 573, 664, 22, C.textDim);
-  }
-
-  // 第 2 頁 先死一次: 跳不上(叉) / 掉坑(勾)
-  function guide1(ctx, A) {
-    var cw = 300, ch = 700, cy = 30;
-    var ax = 10, bx = 330;
-    cell(ctx, ax, cy, cw, ch);
-    cell(ctx, bx, cy, cw, ch);
-    var gy = 560;
-    // 左格: 跳不上
-    ctx.save();
-    ctx.translate(ax, cy);
-    A.drawPlatform(ctx, { x: 0, y: gy, w: cw, h: 80 });
-    A.drawPlatform(ctx, { x: 0, y: 180, w: cw, h: 24 });
-    ctx.strokeStyle = 'rgba(255,241,208,0.45)';
-    ctx.setLineDash([6, 8]);
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(60, gy - 28);
-    ctx.quadraticCurveTo(110, gy - 360, 150, gy - 110);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    A.drawPlayer(ctx, { x: 90, y: gy - 168 - 56, facing: 1, state: 'air', gen: 1 });
-    arrow(ctx, 210, gy - 172, 210, 214, 'rgba(255,255,255,0.6)', 3, 12);
-    mark(ctx, 'no', 210, 280, 30);
-    label(ctx, '跳不上', 150, 670, 26, C.text);
-    ctx.restore();
-    // 右格: 掉坑
-    ctx.save();
-    ctx.translate(bx, cy);
-    A.drawPlatform(ctx, { x: 0, y: gy, w: 170, h: 80 });
-    A.drawPlatform(ctx, { x: 0, y: 180, w: cw, h: 24 });
-    ctx.fillStyle = 'rgba(255,77,77,0.18)';
-    ctx.fillRect(170, gy + 30, 130, 50);
-    ctx.strokeStyle = 'rgba(255,241,208,0.45)';
-    ctx.setLineDash([6, 8]);
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(110, gy - 28);
-    ctx.quadraticCurveTo(200, gy - 50, 230, gy + 40);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    A.drawPlayer(ctx, { x: 205, y: gy + 10, facing: 1, state: 'dead', gen: 1 });
-    mark(ctx, 'ok', 230, 420, 30);
-    label(ctx, '先死, 才往前', 150, 670, 26, C.text);
-    ctx.restore();
-  }
-
-  // 第 3 頁 死了變幽靈: 新的你 + 幽靈 + 前方路線
-  function guide2(ctx, A) {
-    var gy = 560;
-    A.drawPlatform(ctx, { x: 0, y: gy, w: REF_W, h: 80 });
-    ctx.fillStyle = 'rgba(255,241,208,0.25)';
-    ctx.fillRect(40, gy - 4, 60, 4);
-    label(ctx, '出生點', 70, gy + 40, 22, C.textDim);
-    A.drawPlayer(ctx, { x: 50, y: gy - 56, facing: 1, state: 'idle', gen: 2 });
-    label(ctx, '新的你', 70, gy - 90, 24, C.text);
-    var gx = 240;
-    var pts = pathPoints(gx + 20, gy - 28, 1, 72, 22);
-    A.drawGhostPath(ctx, { segments: [pts] });
-    A.drawGhost(ctx, { x: gx, y: gy - 56, facing: 1, state: 'run', gen: 1, hookable: false });
-    label(ctx, '幽靈', gx + 20, gy - 90, 24, C.ghost);
-    label(ctx, '接下來的路', 450, gy - 250, 22, C.ghost);
-  }
-
-  // 第 4 頁 踩幽靈: 站在幽靈頭上一起往上
-  function guide3(ctx, A) {
-    ctx.save();
-    ctx.translate(320, 380);
-    ctx.scale(2, 2);
-    A.drawPlatform(ctx, { x: -160, y: 150, w: 320, h: 80 });
-    var gx = -20, gyy = 30;
-    ctx.save();
-    ctx.globalAlpha = 0.35;
-    drawFigure(ctx, gx, gyy + 74, 1, 'air', null, 'gone', false);
-    ctx.restore();
-    A.drawGhost(ctx, { x: gx, y: gyy, facing: 1, state: 'air', gen: 1, hookable: false });
-    A.drawPlayer(ctx, { x: gx, y: gyy - 56, facing: 1, state: 'idle', gen: 2 });
-    arrow(ctx, 48, 110, 48, -40, C.text, 3, 10);
-    ctx.restore();
-    // 參考框座標: 幽靈 (280,440)~(360,552), 頭頂線 y 440
-    label(ctx, '一起往上', 500, 360, 26, C.text);
-    label(ctx, '頭頂能站', 126, 440, 24, C.ghostEdge);
-    arrow(ctx, 190, 440, 272, 440, C.ghostEdge, 3, 12);
-  }
-
-  // 第 5 頁 只看得見上一個人
-  function guide4(ctx, A) {
-    var y0 = 40, sc = 1.6;
-    var xs = [110, 290, 470];
-    var caps = ['看不見', '幽靈', '你'];
-    var cols = [C.textDim, C.ghost, C.player];
-    A.drawPlatform(ctx, { x: 40, y: y0 + 56 * sc + 4, w: REF_W - 80, h: 24 });
-    for (var i = 0; i < 3; i++) {
-      ctx.save();
-      ctx.translate(xs[i], y0);
-      ctx.scale(sc, sc);
-      if (i === 0) drawFigure(ctx, 0, 0, 1, 'idle', 1, 'gone', false);
-      else if (i === 1) A.drawGhost(ctx, { x: 0, y: 0, facing: 1, state: 'idle', gen: 2, hookable: false });
-      else A.drawPlayer(ctx, { x: 0, y: 0, facing: 1, state: 'idle', gen: 3 });
-      ctx.restore();
-      text(ctx, String(i + 1) + ' 號', xs[i] + 32, y0 + 56 * sc + 62, 28, cols[i]);
-      label(ctx, caps[i], xs[i] + 32, y0 + 56 * sc + 98, 24, cols[i]);
-    }
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.fillRect(40, 290, REF_W - 80, 2);
-    // 下: 2 號幽靈在半空往上跳, 腳下是看不見的 1 號
-    var gy = 680;
-    A.drawPlatform(ctx, { x: 0, y: gy, w: REF_W, h: 80 });
-    A.drawPlayer(ctx, { x: 70, y: gy - 56, facing: 1, state: 'idle', gen: 3 });
-    label(ctx, '你', 90, gy - 80, 24, C.text);
-    drawFigure(ctx, 330, 470, 1, 'air', 1, 'gone', false);
-    A.drawGhost(ctx, { x: 330, y: 414, facing: 1, state: 'idle', gen: 2, hookable: false });
-    arrow(ctx, 400, 520, 400, 400, C.ghost, 3, 12);
-    label(ctx, '看不見的 1 號', 350, 560, 22, C.textDim);
-  }
-
-  var GUIDE = [guide0, guide1, guide2, guide3, guide4];
-  var GUIDE_TITLES = ['走到旗子', '先死一次', '死了變幽靈', '踩幽靈', '只看得見上一個人'];
-  var GUIDE_LINES = [
-    '走到旗子就過關',
-    '一個人到不了, 要先死一次',
-    '死掉的你會一直重演',
-    '幽靈的頭能站, 還會載你走',
-    '共三人, 只看得見上一個'
-  ];
-
-  // 解鎖頁: 鉤爪 — 上格: 幽靈跳在半空亮綠框 + Z 鍵帽; 下格: 暫停中的瞄準 + 角色旁鍵帽提示; 角落 HUD 鉤爪 2 格
-  function unlockHook(ctx, A) {
-    var cx0 = 10, cw = 620;
-    // 上格
-    cell(ctx, cx0, 10, cw, 330);
-    ctx.save();
-    ctx.translate(cx0, 10);
-    ctx.beginPath(); ctx.rect(0, 0, cw, 330); ctx.clip();
-    A.drawPlatform(ctx, { x: 0, y: 290, w: cw, h: 80 });
-    A.drawGhost(ctx, { x: 320, y: 120, facing: 1, state: 'air', gen: 1, hookable: true, hookAir: true });
-    A.drawPlayer(ctx, { x: 190, y: 234, facing: 1, state: 'idle', gen: 2 });
-    // 角落: HUD 鉤爪次數
-    rr(ctx, 16, 16, 176, 64, 12);
-    ctx.fillStyle = C.hudBg;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = C.hudLine;
-    ctx.stroke();
-    text(ctx, '鉤爪', 50, 48, 20, C.textDim);
-    hookPips(ctx, 86, 48, 2, 2);
-    ctx.restore();
-    // 下格: 暫停中瞄準
-    cell(ctx, cx0, 360, cw, 390);
-    ctx.save();
-    ctx.translate(cx0, 360);
-    ctx.beginPath(); ctx.rect(0, 0, cw, 390); ctx.clip();
-    A.drawPlatform(ctx, { x: 0, y: 340, w: cw, h: 80 });
-    var g = { x: 320, y: 130 }, p = { x: 200, y: 284 };
-    A.drawGhost(ctx, { x: g.x, y: g.y, facing: 1, state: 'air', gen: 1, hookable: true, hookAir: true });
-    A.drawPlayer(ctx, { x: p.x, y: p.y, facing: 1, state: 'aim', gen: 2 });
-    var pcx = p.x + 20, pcy = p.y + 28, gcx = g.x + 20, gcy = g.y + 28;
-    var d = Math.hypot(gcx - pcx, gcy - pcy), L = 280;
-    A.drawAim(ctx, { px: pcx, py: pcy, gx: gcx, gy: gcy, ax: pcx + (gcx - pcx) / d * L, ay: pcy + (gcy - pcy) / d * L, charge: 0.75 });
-    pauseFrame(ctx, 0, 0, cw, 390);
-    ctx.restore();
-  }
-
-  // 解鎖頁: 起跑哨
-  function unlockWhistle(ctx, A) {
-    var cw = 300, ch = 700, cy = 30;
-    var xs = [10, 330];
-    for (var k = 0; k < 2; k++) {
-      cell(ctx, xs[k], cy, cw, ch);
-      ctx.save();
-      ctx.translate(xs[k], cy);
+    if (pressed) {
+      // 右上角小勾勾
+      var bx = w / 2 - 2, by = -s / 2 + 1;
       ctx.beginPath();
-      ctx.rect(0, 0, cw, ch);
-      ctx.clip();
-      var gy = 560;
-      A.drawPlatform(ctx, { x: 0, y: gy, w: cw, h: 80 });
-      A.drawPlatform(ctx, { x: 150, y: 300, w: 150, h: 24 });
-      ctx.fillStyle = 'rgba(255,241,208,0.25)';
-      ctx.fillRect(14, gy - 4, 52, 4);
-      var px = 120;
-      if (k === 0) {
-        var p0 = pathPoints(240, 272, 1, 20, -1);
-        A.drawGhostPath(ctx, { segments: [p0] });
-        A.drawGhost(ctx, { x: 220, y: 244, facing: 1, state: 'run', gen: 1, hookable: false });
-        A.drawPlayer(ctx, { x: px, y: gy - 56, facing: 1, state: 'idle', gen: 2 });
-        keycap(ctx, 'C', px + 20, gy - 100, 48);
-        label(ctx, '吹哨前', 150, 660, 24, C.text);
-      } else {
-        drawFigure(ctx, 220, 244, 1, 'run', null, 'gone', false);
-        ctx.strokeStyle = 'rgba(168,196,255,0.5)';
-        ctx.setLineDash([6, 8]);
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(220, 280);
-        ctx.quadraticCurveTo(80, 290, 46, 470);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        arrow(ctx, 50, 450, 42, 486, 'rgba(168,196,255,0.85)', 3, 14);
-        var p1 = pathPoints(40, gy - 28, 1, 60, 30);
-        A.drawGhostPath(ctx, { segments: [p1] });
-        A.drawWhistleRing(ctx, { cx: 40, cy: gy - 28, t: 0.3 });
-        A.drawGhost(ctx, { x: 20, y: gy - 56, facing: 1, state: 'idle', gen: 1, hookable: false });
-        A.drawPlayer(ctx, { x: px + 40, y: gy - 56, facing: 1, state: 'idle', gen: 2 });
-        label(ctx, '叫回出生點', 150, 660, 24, C.text);
-      }
-      ctx.restore();
+      ctx.arc(bx, by, 9, 0, Math.PI * 2);
+      ctx.fillStyle = TUT.done;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = TUT.edge;
+      ctx.stroke();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 2.6;
+      ctx.strokeStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(bx - 4, by);
+      ctx.lineTo(bx - 1, by + 3.5);
+      ctx.lineTo(bx + 4.5, by - 3.5);
+      ctx.stroke();
     }
+    ctx.restore();
+  }
+
+  function tutMark(ctx, m, alpha) {
+    // 被講到的物件外圍: 脈動的紙白虛線圓角框(深色襯底), 虛線緩慢繞行
+    if (!m || !(m.w > 0) || !(m.h > 0) || alpha <= 0) return;
+    var t = nowMs() / 1000;
+    var p = 0.5 + 0.5 * Math.sin(t * Math.PI * 2 / 0.9);
+    var e = 6 + 4 * p;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    rr(ctx, m.x - e, m.y - e, m.w + 2 * e, m.h + 2 * e, 10);
+    ctx.lineWidth = 7;
+    ctx.strokeStyle = 'rgba(8,10,18,0.55)';
+    ctx.stroke();
+    ctx.setLineDash([12, 8]);
+    ctx.lineDashOffset = -t * 24;
+    ctx.lineWidth = 3.5;
+    ctx.globalAlpha = alpha * (0.6 + 0.4 * p);
+    ctx.strokeStyle = TUT.mark;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function tutBubblePath(ctx, bx, by, bw, bh, tipX, tipY, above) {
+    // 外框路徑: 圓角矩形 + 尾巴(底邊或頂邊伸出)
+    var r = 14;
+    var baseX = Math.max(bx + r + 12, Math.min(bx + bw - r - 12, tipX));
+    var hw = 11;
+    ctx.beginPath();
+    ctx.moveTo(bx + r, by);
+    if (!above) { ctx.lineTo(baseX - hw, by); ctx.lineTo(tipX, tipY); ctx.lineTo(baseX + hw, by); }
+    ctx.lineTo(bx + bw - r, by);
+    ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
+    ctx.lineTo(bx + bw, by + bh - r);
+    ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
+    if (above) { ctx.lineTo(baseX + hw, by + bh); ctx.lineTo(tipX, tipY); ctx.lineTo(baseX - hw, by + bh); }
+    ctx.lineTo(bx + r, by + bh);
+    ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
+    ctx.lineTo(bx, by + r);
+    ctx.quadraticCurveTo(bx, by, bx + r, by);
+    ctx.closePath();
+  }
+
+  function bigCheck(ctx, cx, cy, s) {
+    // 完成大勾勾: 綠圓 + 白勾, 深色外框
+    if (s <= 0) return;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(s, s);
+    ctx.beginPath();
+    ctx.arc(0, 0, 25, 0, Math.PI * 2);
+    ctx.fillStyle = TUT.done;
+    ctx.fill();
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = TUT.edge;
+    ctx.stroke();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(-11, 1);
+    ctx.lineTo(-3, 9);
+    ctx.lineTo(12, -9);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function sparkle(ctx, x, y, r, color, alpha) {
+    // 小星點: 圓芯 + 四道短光(圓頭), 往外飛散的慶祝, 非地面物件
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 2.4;
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x - r * 1.6, y); ctx.lineTo(x + r * 1.6, y);
+    ctx.moveTo(x, y - r * 1.6); ctx.lineTo(x, y + r * 1.6);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.75 + 1.2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(8,10,18,0.6)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.75, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function downArrowIcon(ctx, cx, cy) {
+    // 「跳到他頭上」的向下小箭頭(圓頭線, 泡泡墨色)
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = TUT.ink;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 11); ctx.lineTo(cx, cy + 9);
+    ctx.moveTo(cx - 7, cy + 2); ctx.lineTo(cx, cy + 9); ctx.lineTo(cx + 7, cy + 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---------- 開始畫面 / 解鎖頁用的小圖 ----------
+  function whistleIcon(ctx) {
+    // 哨子(以 0,0 為中心, 約 90 x 50): 吹嘴 + 圓腔 + 出音孔 + 掛環
+    ctx.save();
+    ctx.lineJoin = 'round';
+    function shape() {
+      rr(ctx, -46, -20, 54, 18, 5);
+      ctx.moveTo(38, 4);
+      ctx.arc(14, 4, 24, 0, Math.PI * 2);
+    }
+    ctx.beginPath(); shape();
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = C.outline;
+    ctx.stroke();
+    ctx.beginPath(); shape();
+    ctx.fillStyle = C.whistle;
+    ctx.fill();
+    ctx.fillStyle = '#c9d0e2';
+    ctx.beginPath();
+    ctx.arc(14, 4, 15, 0.2, Math.PI * 0.95);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#c9d0e2';
+    ctx.stroke();
+    ctx.fillStyle = C.outline;
+    rr(ctx, -6, -20, 12, 7, 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(34, -18, 7, 0, Math.PI * 2);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = C.outline;
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = C.whistle;
+    ctx.stroke();
+    ctx.restore();
   }
 
   function bottomPrompt(ctx, label1) {
@@ -909,30 +832,6 @@
     text(ctx, label1, x0 + kw + 16, 1210, 30, C.text, 'left');
   }
 
-  function guidePrompt(ctx, page, n) {
-    // 說明頁底部(只有全畫布模式才畫): 第 1 頁「→ / 空白鍵 下一頁」; 中間「← 上一頁   → / 空白鍵 下一頁」; 最後「… 開始遊戲」
-    var y = 1210, items = [];
-    if (page > 0) items.push(['←'], ['上一頁', C.textDim], [' ', null, 34]);
-    items.push(['→'], ['/', C.textDim], ['空白鍵'], [page === n - 1 ? '開始遊戲' : '下一頁', C.text]);
-    var ws = [], total = 0, gap = 10;
-    ctx.save();
-    for (var i = 0; i < items.length; i++) {
-      var it = items[i], wv;
-      if (it[2]) wv = it[2];
-      else if (it.length === 1) { ctx.font = 'bold 18px ' + FONT; wv = Math.max(40, ctx.measureText(it[0]).width + 20); }
-      else { ctx.font = 'bold 26px ' + FONT; wv = ctx.measureText(it[0]).width; }
-      ws.push(wv); total += wv + (i ? gap : 0);
-    }
-    ctx.restore();
-    var x = W / 2 - total / 2;
-    for (var j = 0; j < items.length; j++) {
-      var a = items[j];
-      if (a[2]) { /* 空白 */ }
-      else if (a.length === 1) keycap(ctx, a[0], x + ws[j] / 2, y, 40);
-      else text(ctx, a[0], x, y, 26, a[1], 'left');
-      x += ws[j] + gap;
-    }
-  }
 
   // ---------- 關卡卡片的新東西圖示(用遊戲內畫法) ----------
   function introIcon(ctx, A, kind, cx, cy) {
@@ -1792,62 +1691,217 @@
       ctx.restore();
     },
 
-    // ---------- 說明頁 ----------
-    // 有 x,y,w,h: 只在框內畫示意圖(RD 畫標題、文字、頁碼、翻頁提示)
-    // 只有 page: 畫滿整張畫布(interface.json 的寫法), 含背景、標題、文字、頁碼點、翻頁提示
-    drawGuidePage: function (ctx, s) {
+    // ---------- 開始畫面 ----------
+    drawTitle: function (ctx, s) {
       s = s || {};
-      var n = GUIDE.length;
-      var page = Math.max(0, Math.min(n - 1, s.page | 0));
+      var t = s.t || 0;
       var A = Art;
       ctx.save();
-      if (s.w > 0 && s.h > 0) {
-        inBox(ctx, s.x || 0, s.y || 0, s.w, s.h, function (c) { GUIDE[page](c, A); });
-        ctx.restore();
-        return;
-      }
       bgFill(ctx);
-      text(ctx, '幽影接力', W / 2, 60, 30, C.textDim);
-      text(ctx, GUIDE_TITLES[page], W / 2, 140, 46, C.text);
-      text(ctx, GUIDE_LINES[page], W / 2, 214, 32, '#ffe9a8');
-      var PX = 40, PY = 280, PW = 640, PH = 760;
-      rr(ctx, PX, PY, PW, PH, 20);
-      ctx.fillStyle = 'rgba(8,12,22,0.55)';
-      ctx.fill();
+      // 遊戲名: 本體 + 身後一層淡藍「殘影」(只是字的裝飾, 不是遊戲物件)
+      text(ctx, '幽影接力', W / 2 + 7, 318, 96, 'rgba(168,196,255,0.28)');
+      text(ctx, '幽影接力', W / 2, 310, 96, C.text);
+
+      // 中央小圖: 你(前一刻, 在地上)→ 跳到 1 號幽靈頭上, 一起往上
+      ctx.save();
+      ctx.translate(W / 2, 600);
+      ctx.scale(2.2, 2.2);
+      A.drawPlatform(ctx, { x: -130, y: 100, w: 260, h: 40, solid: true });
+      var bob = 30 * Math.abs(Math.sin(t * 1.7));
+      var gy = 44 - bob;
+      // 前一刻的你: 同一個實心小人的淡化殘留(實線深外框, 與幽靈的淡藍虛線不同)
+      ctx.save();
+      ctx.globalAlpha = 0.42;
+      drawFigure(ctx, -100, 44, 1, 'idle', 2, 'player', false);
+      ctx.restore();
+      // 跳躍弧線(虛線) → 落在幽靈頭頂上的你
+      ctx.save();
+      ctx.setLineDash([4, 5]);
       ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(255,241,208,0.55)';
+      ctx.beginPath();
+      ctx.moveTo(-70, 40);
+      ctx.quadraticCurveTo(-46, gy - 96, 2, gy - 56 + 8);
       ctx.stroke();
-      inBox(ctx, PX, PY, PW, PH, function (c) { GUIDE[page](c, A); });
-      for (var i = 0; i < n; i++) {
-        ctx.beginPath();
-        ctx.arc(W / 2 - (n - 1) * 14 + i * 28, 1120, i === page ? 8 : 5, 0, Math.PI * 2);
-        ctx.fillStyle = i === page ? C.text : 'rgba(138,147,173,0.5)';
-        ctx.fill();
-      }
-      guidePrompt(ctx, page, n);
+      ctx.restore();
+      A.drawGhost(ctx, { x: -10, y: gy, facing: 1, state: bob > 1 ? 'air' : 'idle', gen: 1, hookable: false, hookAir: bob > 1 });
+      A.drawPlayer(ctx, { x: -10, y: gy - 56, facing: 1, state: 'idle', gen: 2 });
+      ctx.restore();
+
+      // 空白鍵 開始(閃爍)
+      var blink = 0.35 + 0.65 * (0.5 + 0.5 * Math.cos(t * Math.PI * 2 / 1.2));
+      ctx.save();
+      ctx.globalAlpha = blink;
+      ctx.font = 'bold 26px ' + FONT;
+      var kw = Math.max(52, ctx.measureText('空白鍵').width + 26);
+      ctx.font = 'bold 36px ' + FONT;
+      var tw = ctx.measureText('開始').width;
+      var x0 = W / 2 - (kw + 18 + tw) / 2;
+      keycap(ctx, '空白鍵', x0 + kw / 2, 1000, 52);
+      text(ctx, '開始', x0 + kw + 18, 1000, 36, C.text, 'left');
+      ctx.restore();
+
+      // 右下: M 靜音 + 喇叭
+      keycap(ctx, 'M', 556, 1222, 34);
+      text(ctx, '靜音', 604, 1222, 22, C.textDim);
+      speaker(ctx, 672, 1222, !!s.muted);
       ctx.restore();
     },
 
-    drawLevelIntro: function (ctx, s) {
+    // ---------- 新手教學泡泡 ----------
+    drawTutorial: function (ctx, s) {
       s = s || {};
-      var A = Art;
+      var keys = s.keys || [], pressed = s.pressed || [];
+      var pop = s.pop == null ? 1 : clamp01(s.pop);
+      var done = clamp01(s.done);
+      var above = s.place !== 'below';
+      var ax = s.ax || 0, ay = s.ay || 0;
+      var stage = s.stage || '';
+      var str = s.text || '';
+      var i;
+      if (done >= 1) return;
       ctx.save();
-      bgFill(ctx);
-      text(ctx, '第 ' + (s.level || 1) + ' 關 / 共 ' + (s.levelCount || 7) + ' 關', W / 2, 250, 30, C.textDim);
-      text(ctx, s.title || '', W / 2, 340, 68, C.text);
-      rr(ctx, 120, 430, 480, 380, 24);
-      ctx.fillStyle = 'rgba(8,12,22,0.55)';
+
+      // 版面: [文字][小圖示][鍵帽…]
+      ctx.font = 'bold ' + TUT_FONT + 'px ' + FONT;
+      var tw = str ? ctx.measureText(str).width : 0;
+      var iconW = stage === 'head' ? 24 : 0;
+      var kws = [], kTot = 0;
+      for (i = 0; i < keys.length; i++) { kws.push(tutKeyWidth(ctx, keys[i])); kTot += kws[i] + (i ? 8 : 0); }
+      var bw = TUT_PAD * 2 + tw + (iconW ? 8 + iconW : 0) + (keys.length ? (tw ? 14 : 0) + kTot : 0);
+      bw = Math.max(bw, 96);
+      var bh = TUT_BH;
+      var bx = Math.max(12, Math.min(W - 12 - bw, ax - bw / 2));
+      var by = above ? ay - TUT_GAP - bh : ay + TUT_GAP;
+      var tipY = above ? ay - 4 : ay + 4;
+      var tipX = ax;
+      var bcx = bx + bw / 2, bcy = by + bh / 2;
+
+      // 整體淡出(完成特效後段)
+      var fade = done > 0.55 ? 1 - (done - 0.55) / 0.45 : 1;
+      var appear = Math.min(1, pop * 3);
+
+      // 標示框(畫在泡泡下面)
+      if (s.mark) tutMark(ctx, s.mark, appear * fade);
+
+      // 縮放: 出現時從尾巴尖端彈出; 完成後段往泡泡中心縮小
+      ctx.save();
+      ctx.globalAlpha = appear * fade;
+      var sc = pop < 1 ? Math.max(0.05, easeOutBack(pop)) : 1;
+      ctx.translate(tipX, tipY);
+      ctx.scale(sc, sc);
+      ctx.translate(-tipX, -tipY);
+      if (done > 0.55) {
+        var k2 = 1 - 0.55 * (done - 0.55) / 0.45;
+        ctx.translate(bcx, bcy);
+        ctx.scale(k2, k2);
+        ctx.translate(-bcx, -bcy);
+      }
+      // 泡泡本體
+      var flash = done > 0 ? Math.sin(Math.min(1, done / 0.45) * Math.PI) : 0;
+      tutBubblePath(ctx, bx, by, bw, bh, tipX, tipY, above);
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = TUT.edge;
+      ctx.stroke();
+      ctx.fillStyle = TUT.fill;
+      ctx.fill();
+      if (done > 0) {
+        ctx.fillStyle = 'rgba(47,224,138,' + (0.55 * Math.max(flash, done > 0.45 ? 0.35 : 0)) + ')';
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = TUT.done;
+        ctx.stroke();
+      }
+      // 內容
+      var cx = bx + TUT_PAD, cy = by + bh / 2;
+      if (tw) {
+        ctx.fillStyle = TUT.ink;
+        ctx.font = 'bold ' + TUT_FONT + 'px ' + FONT;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(str, cx, cy + 1);
+        cx += tw;
+      }
+      if (iconW) { downArrowIcon(ctx, cx + 8 + iconW / 2, cy); cx += 8 + iconW; }
+      if (keys.length) {
+        cx += tw ? 14 : 0;
+        var tNow = nowMs();
+        for (i = 0; i < keys.length; i++) {
+          var id = stage + '#' + i;
+          var on = !!pressed[i];
+          var b = 0;
+          if (on) {
+            if (tutKeySeen[id] == null) tutKeySeen[id] = tNow;
+            var el = tNow - tutKeySeen[id];
+            if (el < 260) b = Math.sin(Math.PI * el / 260);
+          } else {
+            delete tutKeySeen[id];
+          }
+          // 完成時鍵帽依序彈一下(move 三顆; 其他階段的單顆也照做)
+          if (done > 0) {
+            var d0 = i * 0.1, dp = (done - d0) / 0.2;
+            if (dp > 0 && dp < 1) b = Math.max(b, Math.sin(Math.PI * dp));
+          }
+          tutKey(ctx, keys[i], cx + kws[i] / 2, cy - 1, on, b);
+          cx += kws[i] + 8;
+        }
+      }
+      // 完成: 中央彈出大勾勾
+      if (done > 0) {
+        var cp = Math.min(1, done / 0.25);
+        bigCheck(ctx, bcx, bcy, easeOutBack(cp));
+      }
+      ctx.restore();
+
+      // 完成: 8 顆小星點從泡泡中心往外散開淡出
+      if (done > 0.08) {
+        var sp = (done - 0.08) / 0.92;
+        var e2 = 1 - Math.pow(1 - sp, 2);
+        for (i = 0; i < 8; i++) {
+          var a = i * Math.PI / 4 + Math.PI / 8;
+          var dist = 34 + 96 * e2;
+          sparkle(ctx, bcx + Math.cos(a) * dist * 1.35, bcy + Math.sin(a) * dist * 0.8,
+            4.5 - 2 * sp, i % 2 ? '#ffffff' : TUT.done, Math.max(0, 1 - sp));
+        }
+      }
+      ctx.restore();
+    },
+
+    // ---------- 開場橫幅(不擋操作, 自動消失) ----------
+    drawLevelBanner: function (ctx, s) {
+      s = s || {};
+      var t = clamp01(s.t);
+      var a = t < 0.13 ? t / 0.13 : (t > 0.8 ? (1 - t) / 0.2 : 1);
+      if (a <= 0) return;
+      var A = Art;
+      var oy = -16 * (1 - (t < 0.13 ? a : 1));
+      var X = 24, Y = 120 + oy, BW = W - 48, BH = 180;
+      ctx.save();
+      ctx.globalAlpha = a;
+      rr(ctx, X, Y, BW, BH, 18);
+      ctx.fillStyle = 'rgba(10,14,24,0.72)';
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.16)';
       ctx.stroke();
+      // 左: 新東西小圖(遊戲內畫法)
+      var IX = X + 14, IY = Y + 12, IW = 220, IH = BH - 24;
+      rr(ctx, IX, IY, IW, IH, 12);
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.fill();
       ctx.save();
-      rr(ctx, 120, 430, 480, 380, 24);
+      rr(ctx, IX, IY, IW, IH, 12);
       ctx.clip();
-      introIcon(ctx, A, s.newThing || 'relay', W / 2, 620);
+      ctx.translate(IX + IW / 2, IY + IH / 2);
+      ctx.scale(0.4, 0.4);
+      introIcon(ctx, A, s.newThing || 'relay', 0, 0);
       ctx.restore();
-      text(ctx, s.hint || '', W / 2, 890, 34, '#ffe9a8');
-      bottomPrompt(ctx, '開始');
+      // 右: 第幾關 + 關名
+      var TX = IX + IW + 26;
+      text(ctx, '第 ' + (s.level || 1) + ' 關 / 共 ' + (s.levelCount || 7) + ' 關', TX, Y + 54, 24, C.textDim, 'left');
+      text(ctx, s.title || '', TX, Y + 116, 54, C.text, 'left');
       ctx.restore();
     },
 
@@ -1857,17 +1911,34 @@
       var hook = s.ability !== 'whistle';
       ctx.save();
       bgFill(ctx);
-      text(ctx, '解鎖', W / 2, 90, 30, C.textDim);
-      text(ctx, hook ? '鉤爪' : '起跑哨', W / 2, 160, 64, hook ? C.hook : C.whistle);
-      text(ctx, hook ? '看到 Z 就按, 每人 2 次' : '按 C, 幽靈立刻從頭出發', W / 2, 236, 32, '#ffe9a8');
-      var PX = 40, PY = 290, PW = 640, PH = 760;
-      rr(ctx, PX, PY, PW, PH, 20);
+      text(ctx, '解鎖', W / 2, 200, 34, C.textDim);
+      text(ctx, hook ? '鉤爪' : '起跑哨', W / 2, 290, 80, hook ? C.hook : C.whistle);
+      var PX = 60, PY = 400, PW = 600, PH = 600;
+      rr(ctx, PX, PY, PW, PH, 24);
       ctx.fillStyle = 'rgba(8,12,22,0.55)';
       ctx.fill();
       ctx.lineWidth = 2;
       ctx.strokeStyle = 'rgba(255,255,255,0.1)';
       ctx.stroke();
-      inBox(ctx, PX, PY, PW, PH, function (c) { (hook ? unlockHook : unlockWhistle)(c, A); });
+      ctx.save();
+      rr(ctx, PX, PY, PW, PH, 24);
+      ctx.clip();
+      if (hook) {
+        // 角色射出、鉤住半空中的幽靈, 鉤索拉直(射出後在空中 → 幽靈不畫可鉤框)
+        ctx.translate(W / 2, PY + PH / 2);
+        ctx.scale(2.1, 2.1);
+        A.drawPlatform(ctx, { x: -140, y: 112, w: 280, h: 24 });
+        A.drawGhost(ctx, { x: 40, y: -122, facing: 1, state: 'air', gen: 1, hookable: false, hookAir: true });
+        A.drawHook(ctx, { x1: -50, y1: 6, x2: 60, y2: -94 });
+        A.drawPlayer(ctx, { x: -70, y: -22, facing: 1, state: 'launch', gen: 2 });
+      } else {
+        // 哨子 + 一圈哨音波紋
+        ctx.translate(W / 2, PY + PH / 2);
+        ctx.scale(2.2, 2.2);
+        A.drawWhistleRing(ctx, { cx: 0, cy: 0, t: 0.35 });
+        whistleIcon(ctx);
+      }
+      ctx.restore();
       bottomPrompt(ctx, '繼續');
       ctx.restore();
     },

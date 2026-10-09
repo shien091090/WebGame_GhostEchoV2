@@ -1,6 +1,10 @@
-# 幽影接力 音效說明(polish-4)
+# 幽影接力 音效說明(polish-5)
 
-相對 polish-3: **完全不變**。spec 本輪只改翹翹板畫法, 音效清單與背景音樂沒動; interface.json 的 30 個事件、4 首曲名與本表一一對應, 素材、音量、opts、呼叫時機照舊, RD 不用改接法。
+相對 polish-4:
+- **新增 3 個事件, 需要 RD 接**: `tutorialShow`(教學泡泡彈出)、`tutorialKey`(第 1 階段鍵帽打勾, 帶 `index`)、`tutorialDone`(教學階段完成)。interface.json 的 33 個事件、4 首曲名與本表一一對應
+- `uiPage` 只改呼叫時機(開始畫面、解鎖頁、全破畫面按空白鍵), 素材與音量不變
+- `title` 曲改在開始畫面 / 解鎖頁播(沒有說明頁、關卡卡片了), 曲子不變
+- 其餘 30 個事件的素材、音量、opts、呼叫時機照舊
 
 (polish-3 相對 polish-2 新增了 `timeTick`、`hookDenied`, 已實作。)
 
@@ -14,7 +18,7 @@
 - 第一次按任何鍵時呼叫 `Sound.init()`(重複呼叫無害)。init 之前的 `play` 一律靜默丟棄; **`playMusic` 在 init 前呼叫會被記住, init 時才開始播**, 所以開網頁時可以直接 `Sound.playMusic('title')`
 - M 鍵: `Sound.setMuted(!Sound.isMuted())`; HUD 的喇叭圖示用 `Sound.isMuted()` 取值。靜音狀態只存在記憶體(本次開網頁期間保留)
 - 未知事件名 / 曲名靜默忽略, 不會丟例外
-- sound.js 約 13.7 MB(音訊資料以 base64 內嵌, 才能在 file:// 下用 Web Audio 做瞄準時的悶化), 載入時解碼音樂約需不到 1 秒; 解碼完成前要求的曲子會在解碼後自動開始
+- sound.js 約 13.8 MB(音訊資料以 base64 內嵌, 才能在 file:// 下用 Web Audio 做瞄準時的悶化), 載入時解碼音樂約需不到 1 秒; 解碼完成前要求的曲子會在解碼後自動開始
 
 ### 共用 opts
 
@@ -22,7 +26,7 @@
 |---|---|---|
 | `volume` | 0~1, 可省 | 這一次的音量倍率(預設 1)。一般不用傳 |
 
-只有 `aimCharge` 另有專用欄位, 見事件表。
+只有 `aimCharge`、`tutorialKey` 另有專用欄位, 見事件表。
 
 ## 事件表
 
@@ -59,7 +63,10 @@
 | `levelFail` | levelFail | 進入失敗畫面那一刻(第 3 代死亡演出結束) | — | sfx_level_fail.wav | 0.50 | 否 |
 | `restart` | restart | 按 R 整關重來 | — | sfx_restart.wav | 0.45 | 否 |
 | `unlock` | unlock | 解鎖頁出現那一刻 | — | sfx_unlock.wav | 0.60 | 否 |
-| `uiPage` | uiPage | 說明頁往前 / 往後翻頁、關卡卡片按空白鍵開始、解鎖頁按空白鍵繼續; 說明頁第 1 頁按 ← 不動時不要叫 | — | sfx_ui_page.wav | 0.40 | 否 |
+| `uiPage` | uiPage(改) | 開始畫面按空白鍵開始、解鎖頁按空白鍵繼續、全破畫面按空白鍵回第 1 關(過關回放、失敗畫面按空白鍵不在 spec 清單內, 不叫) | — | sfx_ui_page.wav | 0.40 | 否 |
+| `tutorialShow` | tutorialShow(新) | 教學泡泡出現那一刻(pop 從 0 開始那一幀), 每個階段一次; 條件式階段再次出現也叫 | — | sfx_tutorial_show.wav(約 330→490 Hz 短「啵」, 60 毫秒, 加了衰減) | 0.30 | 否 |
+| `tutorialKey` | tutorialKey(新) | 第 1 階段某個鍵帽第一次打勾那一幀(pressed 由 false 變 true), 每個鍵一次 | `index`: 0 / 1 / 2 = **這是第幾個打勾的鍵**(依打勾先後, 不是哪一個鍵); 音高 Do → Mi → Sol 依序升高。可省: 省略時自動依呼叫次數 0、1、2 往上, `tutorialShow` 時歸零 | sfx_tutorial_key1 / 2 / 3.wav(金幣「叮」, 960 / 1225 / 1425 Hz) | 0.32 | 否 |
+| `tutorialDone` | tutorialDone(新) | 教學階段完成那一刻(done 從 0 開始那一幀) | — | sfx_tutorial_done.wav(上行琶音)+ 0.12 秒後 sfx_tutorial_sparkle.wav(高音「叮叮」) | 0.28 / 0.18 | 否 |
 
 **aimCharge 為什麼是程式產生**: 它要跟著蓄力值即時、連續地升高音高, 長度又看玩家按多久而定; 找過 Kenney(Digital Audio、Sci-fi Sounds)和 OpenGameArt 的 512 Retro Sound Effects, 只有固定長度的上揚掃頻或固定音高的循環, 對不上可變的蓄力值, 所以用 Web Audio 振盪器即時產生(方波 + 三角波, 音色跟 8-bit 音效同一套)。
 
@@ -75,13 +82,25 @@ else if (!fullPlayed) { Sound.play('aimFull'); fullPlayed = true; }
 Sound.play('hookLaunch');   // 或 Sound.play('hookCancel')
 ```
 
+教學事件範例:
+
+```js
+// 泡泡彈出(每個階段一次)
+Sound.play('tutorialShow');
+// 第 1 階段: 某個鍵帽 pressed 由 false 變 true
+Sound.play('tutorialKey', { index: checkedCount });   // checkedCount = 這之前已打勾幾個(0、1、2)
+checkedCount++;
+// 階段完成(done 開始)
+Sound.play('tutorialDone');
+```
+
 ## 背景音樂
 
 `Sound.playMusic(曲名)`: 循環播放; 換到另一首時舊的淡出 0.6 秒。同一首重複呼叫不會重頭(可以每幀叫)。`Sound.stopMusic()` 淡出停止。
 
 | 曲名 | spec | 何時切 | 素材 | 相對音量 | 循環方式 |
 |---|---|---|---|---|---|
-| `title` | title | 說明頁、關卡卡片、解鎖頁 | music_title.mp3(Monkeys Spinning Monkeys, 明亮俏皮的弦樂撥奏) | 0.40 | 53 秒 / 32 小節, 段尾 2 秒淡出後從頭 |
+| `title` | title | 開始畫面、解鎖頁(開網頁時就可以叫, init 時才開始播) | music_title.mp3(Monkeys Spinning Monkeys, 明亮俏皮的弦樂撥奏) | 0.40 | 53 秒 / 32 小節, 段尾 2 秒淡出後從頭 |
 | `play` | play | 遊玩中(每關同一首); 死亡演出、R 重來都**不要**重叫別首 | music_play.mp3(Easy Lemon, 輕鬆的吉他與木琴) | 0.34 | 70 秒 / 24 小節, 段尾 2 秒淡出後從頭 |
 | `replay` | replay | 過關回放 | music_replay.mp3(Fluffing a Duck, 滑稽可愛的管樂) | 0.40 | 整首 67 秒, 播完從頭 |
 | `ending` | ending | 全破畫面 | music_ending.mp3(Life of Riley, 溫暖的烏克麗麗與鐘琴) | 0.40 | 56 秒 / 24 小節, 段尾 2 秒淡出後從頭 |
@@ -107,6 +126,12 @@ Sound.play('hookLaunch');   // 或 Sound.play('hookCancel')
 | timeTick 與其他事件同時(例: 剛好壓開關) | 照叫; timeTick 是高音短滴、音量 0.25, 不蓋掉機關聲 |
 | 連按 Z 被拒: hookDenied 反覆 | 0.08 秒內重複只響一次; 低音、短、小聲, 不會變成警報 |
 | 空中按 Z: hookDenied + 同時起跳的 jump | 照叫; 兩者音高差很多(jump 上揚、hookDenied 低悶) |
+| 第 1 階段按跳: jump + tutorialKey 同一幀 | 照叫; 「叮」是 1 kHz 上下的定音, jump 是滑音, 聽得出兩聲 |
+| 同一幀兩個鍵一起打勾(例: → 和空白鍵同時按) | 叫兩次 tutorialKey(index 各自給); 第二聲自動往後錯開 0.07 秒, 聽起來是「叮、叮」不是一聲 |
+| 第三個鍵打勾 → 第 1 階段完成: tutorialKey + tutorialDone 同一幀 | 照叫; tutorialDone 會自動延後到「叮」之後 0.12 秒, 聽起來是集滿點數 → 小成就 |
+| tutorialDone 與 headStand / hookLaunch / buttonPress 同一幀 | 照叫; tutorialDone 音量 0.28 / 0.18, 比這三個(0.50~0.60)小一號, 動作聲在前面 |
+| tutorialDone(0.8 秒特效)之後下一個泡泡: tutorialShow | 各自照叫; 琶音約 0.4 秒就結束, 不重疊 |
+| tutorialShow 與機關聲同一幀(例: 泡泡在門開時出現) | 照叫; 「啵」只有 60 毫秒、音量 0.30 |
 
 ## 理念或經驗落實
 
@@ -116,4 +141,5 @@ Sound.play('hookLaunch');   // 或 Sound.play('hookCancel')
 - **CC BY 音樂的署名文字**(經驗「CC BY 音樂的署名文字」): 照 incompetech 的固定格式寫進 credits.md, 並提醒製作人遊戲畫面要放
 - **用 OfflineAudioContext 在載入時解碼內嵌 mp3**(經驗「背景音樂要跟拍子時鐘對齊…」): 沿用同一個做法讓 file:// 下也能用 Web Audio 做悶化; 本作不要求無縫循環, 改成段尾淡出再從頭, 不需要校正解碼器開頭填充
 - **沿用任務保留同一套聲音**: 新增的 timeTick、hookDenied 也取自同一個 8-bit 音效包(Simple Bleeps 類), 響度照上一版同一套流程統一; 兩個原檔是平坦方波, 另加短衰減讓「滴 / 嗒」不刺耳(spec 要求不讓人慌、不是錯誤警報), 起音都在 1 毫秒內
+- **polish-5 的教學三聲也沿用同一套**: 都取自同一個 8-bit 音效包, 響度流程與上一版相同, 起音全部在 1 毫秒內(量「到峰值一成」為 0.0 毫秒), 泡泡彈出時立刻有聲; 刻意避開已用過的檔(aimFull 的金幣、uiPage 的選單音、spawn / unlock 的能力音), 讓教學音和遊戲事件聽得出不同。tutorialKey 三段音高用同一個「叮」重取樣出 Do / Mi / Sol(大三和弦), 集點感來自音高往上; tutorialDone 選 0.25 秒的短琶音, 比 levelClear 的 0.51 秒號角短一半、音量也低, 符合 spec「比 levelClear 小一號」
 - spec 要求「title 不要有點毛」: 換成風格欄標 Bright / Humorous / Uplifting 的曲子, 沒有選 Mysterious / Dark 的

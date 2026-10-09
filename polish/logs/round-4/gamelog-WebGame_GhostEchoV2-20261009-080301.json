@@ -1,0 +1,249 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-3",
+ "sessionStart": "2026-10-09T08:00:08+08:00",
+ "downloadedAt": "2026-10-09T08:03:01+08:00",
+ "reason": "lose",
+ "events": [
+  {
+   "type": "unlock",
+   "t": 150835,
+   "level": 5,
+   "ability": "whistle"
+  },
+  {
+   "type": "level_start",
+   "t": 152919,
+   "level": 6,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 152920,
+   "level": 6,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "button",
+   "t": 154364,
+   "level": 6,
+   "attempt": 1,
+   "gen": 1,
+   "by": "player"
+  },
+  {
+   "type": "crusher_fall",
+   "t": 155565,
+   "level": 6,
+   "attempt": 1,
+   "gen": 1,
+   "upTime": 1200,
+   "playerX": 121
+  },
+  {
+   "type": "gen_end",
+   "t": 158481,
+   "level": 6,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "spike",
+   "x": 39,
+   "y": 1144,
+   "duration": 335,
+   "minFeetY": 1200,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 54.4
+  },
+  {
+   "type": "gen_start",
+   "t": 159079,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "button",
+   "t": 159648,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "player"
+  },
+  {
+   "type": "button",
+   "t": 160530,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "crusher_fall",
+   "t": 161731,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "upTime": 2083,
+   "playerX": 121
+  },
+  {
+   "type": "whistle",
+   "t": 163565,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "x": 151,
+   "y": 1144,
+   "ghostFrame": 268,
+   "crusherLeft": 0,
+   "cue": "ok",
+   "tb": 87
+  },
+  {
+   "type": "button",
+   "t": 165016,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "crusher_fall",
+   "t": 166218,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "upTime": 1200,
+   "playerX": 151
+  },
+  {
+   "type": "whistle",
+   "t": 167516,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "x": 160,
+   "y": 1144,
+   "ghostFrame": 236,
+   "crusherLeft": 0,
+   "cue": "ok",
+   "tb": 87
+  },
+  {
+   "type": "button",
+   "t": 168968,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 170148,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "x": 442,
+   "y": 1144,
+   "ghostFrame": 157,
+   "crusherLeft": 33,
+   "cue": "late",
+   "tb": 87
+  },
+  {
+   "type": "crusher_fall",
+   "t": 170162,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "upTime": 1200,
+   "playerX": 446
+  },
+  {
+   "type": "gen_end",
+   "t": 170218,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "crush",
+   "x": 463,
+   "y": 1144,
+   "duration": 669,
+   "minFeetY": 1200,
+   "hooksUsed": 0,
+   "whistles": 3,
+   "timeLeft": 48.9
+  },
+  {
+   "type": "gen_start",
+   "t": 170815,
+   "level": 6,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "button",
+   "t": 170829,
+   "level": 6,
+   "attempt": 1,
+   "gen": 3,
+   "by": "player"
+  },
+  {
+   "type": "button",
+   "t": 171385,
+   "level": 6,
+   "attempt": 1,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 172447,
+   "level": 6,
+   "attempt": 1,
+   "gen": 3,
+   "x": 233,
+   "y": 1144,
+   "ghostFrame": 97,
+   "crusherLeft": 150,
+   "cue": "late",
+   "tb": 34
+  },
+  {
+   "type": "crusher_fall",
+   "t": 172579,
+   "level": 6,
+   "attempt": 1,
+   "gen": 3,
+   "upTime": 1750,
+   "playerX": 268
+  },
+  {
+   "type": "gen_end",
+   "t": 172634,
+   "level": 6,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "crush",
+   "x": 285,
+   "y": 1144,
+   "duration": 110,
+   "minFeetY": 1200,
+   "hooksUsed": 0,
+   "whistles": 1,
+   "timeLeft": 58.2
+  },
+  {
+   "type": "level_lose",
+   "t": 172635,
+   "level": 6,
+   "attempt": 1,
+   "attemptTime": 19715,
+   "fails": 1
+  }
+ ]
+}
