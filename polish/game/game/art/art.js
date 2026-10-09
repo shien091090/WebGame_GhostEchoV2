@@ -36,6 +36,7 @@
     seesaw: '#8a93ad',
     seesawLand: '#4b5470',
     seesawLaunch: '#eef1f8',
+    seesawDust: '#c9d0e2',
     spike: '#ff4d4d',
     goal: '#ffd23f',
     text: '#eef1f8',
@@ -958,7 +959,7 @@
     } else if (kind === 'seesaw') {
       ctx.scale(1.4, 1.4);
       A.drawPlatform(ctx, { x: -120, y: 12, w: 240, h: 24 });
-      A.drawSeesaw(ctx, { x: -100, y: 0, tilt: 0.7 });
+      A.drawSeesaw(ctx, { x: -100, y: 0, tilt: 0.81, swing: 0.3 });
     } else if (kind === 'button') {
       // 按鈕(被踩住) + 升起中的尖刺壓板(倒數量條約剩 6 成); 同一個壓板色
       ctx.scale(1.15, 1.15);
@@ -969,7 +970,7 @@
       // 綜合關: 翹翹板 + 壓板並排, 中間一個「+」
       ctx.scale(0.95, 0.95);
       A.drawPlatform(ctx, { x: -240, y: 110, w: 480, h: 50, solid: true });
-      A.drawSeesaw(ctx, { x: -230, y: 98, tilt: 0.7 });
+      A.drawSeesaw(ctx, { x: -230, y: 98, tilt: 0.81, swing: 0.3 });
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineWidth = 12;
@@ -1341,11 +1342,21 @@
 
 
     drawSeesaw: function (ctx, s) {
-      // 200 x 12: 左 80 落點端(暗、↓) / 中 40 板身與支點 / 右 80 發射端(亮、↑)
+      // 200 x 12: 左 80 落點端(暗、圓頭 ↓) / 中 40 板身與支點 / 右 80 發射端(亮、圓頭 ↑)
+      // 擺動演出只用圓弧 / 圓點 / 扁橢圓, 不用尖角、不用紅橘系(H47: 避免被讀成陷阱)
       ctx.save();
       var x = s.x, y = s.y;
       var t = Math.max(0, Math.min(1, s.tilt || 0));
-      var ang = -t * 12 * Math.PI / 180;
+      var sw = Math.max(0, Math.min(1, s.swing || 0));
+      // 板子角度: swing > 0 時依 swing 走「翹起 → 略過頭 → 彈回平」; swing = 0 時沿用 tilt
+      var eff = t;
+      if (sw > 0) {
+        if (sw < 0.25) eff = Math.sin(sw / 0.25 * Math.PI / 2);
+        else if (sw < 0.75) eff = -0.25 + 1.25 * (0.5 + 0.5 * Math.cos(Math.PI * (sw - 0.25) / 0.5));
+        else eff = -0.25 * (0.5 + 0.5 * Math.cos(Math.PI * (sw - 0.75) / 0.25));
+        if (sw >= 1) eff = 0;
+      }
+      var ang = -eff * 12 * Math.PI / 180;
       // 支點(不動)
       ctx.fillStyle = '#1a1f2e';
       ctx.beginPath();
@@ -1354,6 +1365,7 @@
       ctx.lineTo(x + 88, y + 12);
       ctx.closePath();
       ctx.fill();
+      ctx.save();
       ctx.translate(x + 100, y + 8);
       ctx.rotate(ang);
       // 板身
@@ -1377,35 +1389,67 @@
       ctx.arc(0, -1, 3, 0, Math.PI * 2);
       ctx.fillStyle = C.outline;
       ctx.fill();
-      // 記號: 落點端 ↓(淡), 發射端 ↑(深)
-      var k;
-      ctx.fillStyle = 'rgba(238,241,248,0.8)';
-      for (k = 0; k < 3; k++) {
-        var lx = -84 + k * 24;
-        ctx.beginPath();
-        ctx.moveTo(lx - 5, -4); ctx.lineTo(lx + 5, -4); ctx.lineTo(lx, 2);
-        ctx.closePath();
-        ctx.fill();
-      }
-      ctx.fillStyle = '#1a1f2e';
-      for (k = 0; k < 3; k++) {
-        var rx = 36 + k * 24;
-        ctx.beginPath();
-        ctx.moveTo(rx - 5, 2); ctx.lineTo(rx + 5, 2); ctx.lineTo(rx, -4);
-        ctx.closePath();
-        ctx.fill();
-      }
-      // 擺動中: 發射端上方的彈起線
-      if (t > 0.05) {
-        ctx.strokeStyle = 'rgba(238,241,248,' + (0.35 + 0.6 * t) + ')';
-        ctx.lineWidth = 2.5;
+      // 記號: 兩端各一個圓頭箭頭(箭桿 + 圓角兩翼), 成對: 落點端 ↓(淡), 發射端 ↑(深)
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 2.6;
+      ctx.strokeStyle = 'rgba(238,241,248,0.85)';
+      ctx.beginPath();
+      ctx.moveTo(-60, -4.2); ctx.lineTo(-60, 2.6);              // 箭桿
+      ctx.moveTo(-67, -1); ctx.lineTo(-60, 2.6); ctx.lineTo(-53, -1); // 兩翼
+      ctx.stroke();
+      ctx.strokeStyle = '#1a1f2e';
+      ctx.beginPath();
+      ctx.moveTo(60, 2.6); ctx.lineTo(60, -4.2);
+      ctx.moveTo(53, -0.6); ctx.lineTo(60, -4.2); ctx.lineTo(67, -0.6);
+      ctx.stroke();
+      ctx.restore();
+
+      // 擺動中: 發射端上方的扁橢圓氣流圈 + 兩側灰塵圓點(世界座標, 跟著發射端目前位置)
+      if (sw > 0 && sw < 1) {
+        ctx.save();
+        var lcx = x + 100 + 60 * Math.cos(ang);           // 發射端中心
+        var ltop = y + 8 + 60 * Math.sin(ang) - 6;        // 發射端頂面
+        var k, p, a;
         ctx.lineCap = 'round';
-        ctx.beginPath();
-        for (k = 0; k < 3; k++) {
-          var sx = 40 + k * 22;
-          ctx.moveTo(sx, -10); ctx.lineTo(sx, -10 - 10 * t);
+        // 氣流圈: 兩圈, 第二圈晚 0.25 出發; 往上 50px、變大、淡出, swing = 1 時消失
+        for (k = 0; k < 2; k++) {
+          var d = k * 0.25;
+          p = (sw - d) / (1 - d);
+          if (p <= 0 || p >= 1) continue;
+          var ep = 1 - (1 - p) * (1 - p);
+          a = Math.pow(1 - p, 1.3) * (k === 0 ? 0.95 : 0.7);
+          var cy = ltop - 8 - 50 * ep;
+          var rx = 22 + 22 * ep, ry = 5 + 4 * ep;
+          ctx.beginPath();
+          ctx.ellipse(lcx, cy, rx, ry, 0, 0, Math.PI * 2);
+          ctx.lineWidth = 6 - 2 * p;
+          ctx.strokeStyle = 'rgba(8,10,18,' + (a * 0.55) + ')';
+          ctx.stroke();
+          ctx.lineWidth = 3 - 1.2 * p;
+          ctx.strokeStyle = 'rgba(238,241,248,' + a + ')';
+          ctx.stroke();
         }
-        ctx.stroke();
+        // 灰塵圓點: 發射端兩側各 3 顆, 往外往上散開並淡出
+        p = sw;
+        a = Math.pow(1 - p, 1.1) * 0.9;
+        for (var side = -1; side <= 1; side += 2) {
+          var ox = lcx + side * 40;
+          for (k = 0; k < 3; k++) {
+            var dx = side * (8 + k * 9) * (0.3 + p);
+            var dy = -(6 + k * 7) * p * 2 + 14 * p * p;
+            var r = 3.6 - k * 0.5 - 1.2 * p;
+            ctx.beginPath();
+            ctx.arc(ox + dx, ltop - 2 + dy, Math.max(1, r) + 1.2, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(8,10,18,' + (a * 0.45) + ')';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(ox + dx, ltop - 2 + dy, Math.max(1, r), 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(201,208,226,' + a + ')';
+            ctx.fill();
+          }
+        }
+        ctx.restore();
       }
       ctx.restore();
     },

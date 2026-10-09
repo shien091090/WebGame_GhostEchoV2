@@ -1,4 +1,5 @@
 /* 幽影接力 音效 / 音樂 — window.Sound
+ * polish-4: 音效與音樂全部沿用 polish-3(spec 本輪不改聲音)
  * polish-3: 新增 timeTick、hookDenied(同一套 8-bit 音效包); 其餘沿用 polish-2
  * 契約: init() / play(name, opts) / playMusic(name) / stopMusic() / setMuted(bool) / isMuted()
  * 事件表、呼叫時機與 opts 見同資料夾 sound.md。

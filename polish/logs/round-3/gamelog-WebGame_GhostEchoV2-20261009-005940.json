@@ -1,0 +1,105 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-3",
+ "sessionStart": "2026-10-09T00:57:42+08:00",
+ "downloadedAt": "2026-10-09T00:59:40+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "level_start",
+   "t": 88638,
+   "level": 4,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 88638,
+   "level": 4,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "gen_end",
+   "t": 96402,
+   "level": 4,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 468,
+   "minFeetY": 1200,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 52.2
+  },
+  {
+   "type": "gen_start",
+   "t": 97000,
+   "level": 4,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "gen_end",
+   "t": 106583,
+   "level": 4,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "spike",
+   "x": 56,
+   "y": 724,
+   "duration": 576,
+   "minFeetY": 611,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 50.4
+  },
+  {
+   "type": "gen_start",
+   "t": 107187,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "hook",
+   "t": 115402,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "result": "launch",
+   "ghostAir": true,
+   "charge": 1,
+   "x": 346,
+   "y": 724
+  },
+  {
+   "type": "gen_end",
+   "t": 118153,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 602,
+   "y": 304,
+   "duration": 581,
+   "minFeetY": 184,
+   "hooksUsed": 1,
+   "whistles": 0,
+   "timeLeft": 50.3
+  },
+  {
+   "type": "level_win",
+   "t": 118153,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 29515,
+   "levelTime": 29515,
+   "fails": 0,
+   "restarts": 0
+  }
+ ]
+}

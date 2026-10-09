@@ -1,0 +1,343 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-3",
+ "sessionStart": "2026-10-09T00:57:42+08:00",
+ "downloadedAt": "2026-10-09T01:01:20+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "level_start",
+   "t": 186422,
+   "level": 7,
+   "attempt": 2,
+   "cause": "retry"
+  },
+  {
+   "type": "gen_start",
+   "t": 186422,
+   "level": 7,
+   "attempt": 2,
+   "gen": 1
+  },
+  {
+   "type": "button",
+   "t": 187285,
+   "level": 7,
+   "attempt": 2,
+   "gen": 1,
+   "by": "player"
+  },
+  {
+   "type": "crusher_fall",
+   "t": 188487,
+   "level": 7,
+   "attempt": 2,
+   "gen": 1,
+   "upTime": 1200,
+   "playerX": 290
+  },
+  {
+   "type": "gen_end",
+   "t": 191299,
+   "level": 7,
+   "attempt": 2,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 294,
+   "minFeetY": 1031,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 55.1
+  },
+  {
+   "type": "gen_start",
+   "t": 191903,
+   "level": 7,
+   "attempt": 2,
+   "gen": 2
+  },
+  {
+   "type": "button",
+   "t": 192133,
+   "level": 7,
+   "attempt": 2,
+   "gen": 2,
+   "by": "player"
+  },
+  {
+   "type": "button",
+   "t": 192772,
+   "level": 7,
+   "attempt": 2,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "crusher_fall",
+   "t": 193966,
+   "level": 7,
+   "attempt": 2,
+   "gen": 2,
+   "upTime": 1833,
+   "playerX": 350
+  },
+  {
+   "type": "button",
+   "t": 197668,
+   "level": 7,
+   "attempt": 2,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "seesaw_launch",
+   "t": 198584,
+   "level": 7,
+   "attempt": 2,
+   "gen": 2
+  },
+  {
+   "type": "crusher_fall",
+   "t": 198869,
+   "level": 7,
+   "attempt": 2,
+   "gen": 2,
+   "upTime": 1200,
+   "playerX": 480
+  },
+  {
+   "type": "gen_end",
+   "t": 202466,
+   "level": 7,
+   "attempt": 2,
+   "gen": 2,
+   "cause": "pit",
+   "x": 680,
+   "y": 1285,
+   "duration": 635,
+   "minFeetY": 351,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 49.4
+  },
+  {
+   "type": "gen_start",
+   "t": 203070,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3
+  },
+  {
+   "type": "button",
+   "t": 203300,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "button",
+   "t": 203987,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "player"
+  },
+  {
+   "type": "crusher_fall",
+   "t": 205188,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "upTime": 1883,
+   "playerX": 385
+  },
+  {
+   "type": "hook",
+   "t": 212181,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "result": "launch",
+   "ghostAir": true,
+   "charge": 0.88,
+   "x": 528,
+   "y": 464
+  },
+  {
+   "type": "whistle",
+   "t": 213286,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "x": 545,
+   "y": 204,
+   "ghostFrame": 558,
+   "crusherLeft": 0,
+   "cue": "ok",
+   "tb": 14
+  },
+  {
+   "type": "button",
+   "t": 213515,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 214466,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "x": 545,
+   "y": 204,
+   "ghostFrame": 70,
+   "crusherLeft": 267,
+   "cue": "ok",
+   "tb": 14
+  },
+  {
+   "type": "button",
+   "t": 214702,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 215383,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "x": 545,
+   "y": 204,
+   "ghostFrame": 54,
+   "crusherLeft": 533,
+   "cue": "ok",
+   "tb": 14
+  },
+  {
+   "type": "button",
+   "t": 215619,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 216036,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "x": 545,
+   "y": 204,
+   "ghostFrame": 38,
+   "crusherLeft": 800,
+   "cue": "ok",
+   "tb": 14
+  },
+  {
+   "type": "button",
+   "t": 216265,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 216466,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "x": 480,
+   "y": 204,
+   "ghostFrame": 25,
+   "crusherLeft": 1017,
+   "cue": "ok",
+   "tb": 14
+  },
+  {
+   "type": "button",
+   "t": 216703,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 217098,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "x": 315,
+   "y": 204,
+   "ghostFrame": 37,
+   "crusherLeft": 817,
+   "cue": "ok",
+   "tb": 14
+  },
+  {
+   "type": "button",
+   "t": 217334,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 217654,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "x": 172,
+   "y": 204,
+   "ghostFrame": 32,
+   "crusherLeft": 900,
+   "cue": "ok",
+   "tb": 14
+  },
+  {
+   "type": "button",
+   "t": 217883,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "by": "ghost"
+  },
+  {
+   "type": "gen_end",
+   "t": 217966,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "cause": "win",
+   "x": 86,
+   "y": 204,
+   "duration": 841,
+   "minFeetY": 156,
+   "hooksUsed": 1,
+   "whistles": 7,
+   "timeLeft": 46
+  },
+  {
+   "type": "level_win",
+   "t": 217966,
+   "level": 7,
+   "attempt": 2,
+   "gen": 3,
+   "attemptTime": 31544,
+   "levelTime": 48639,
+   "fails": 1,
+   "restarts": 0
+  }
+ ]
+}

@@ -1,0 +1,138 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-3",
+ "sessionStart": "2026-10-09T00:57:42+08:00",
+ "downloadedAt": "2026-10-09T00:58:16+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "session_start",
+   "t": 2,
+   "level": null,
+   "levelCount": 7
+  },
+  {
+   "type": "guide_page",
+   "t": 4124,
+   "level": null,
+   "from": 0,
+   "to": 1,
+   "dir": "next"
+  },
+  {
+   "type": "guide_page",
+   "t": 6604,
+   "level": null,
+   "from": 1,
+   "to": 2,
+   "dir": "next"
+  },
+  {
+   "type": "guide_page",
+   "t": 8778,
+   "level": null,
+   "from": 2,
+   "to": 3,
+   "dir": "next"
+  },
+  {
+   "type": "guide_page",
+   "t": 11274,
+   "level": null,
+   "from": 3,
+   "to": 4,
+   "dir": "next"
+  },
+  {
+   "type": "guide_done",
+   "t": 11942,
+   "level": null,
+   "pagesTime": 11941,
+   "backs": 0
+  },
+  {
+   "type": "level_start",
+   "t": 12958,
+   "level": 1,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 12959,
+   "level": 1,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "gen_end",
+   "t": 16818,
+   "level": 1,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 233,
+   "minFeetY": 1031,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 56.1
+  },
+  {
+   "type": "gen_start",
+   "t": 17415,
+   "level": 1,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "gen_end",
+   "t": 26651,
+   "level": 1,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "pit",
+   "x": 680,
+   "y": 1297,
+   "duration": 555,
+   "minFeetY": 821,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 50.8
+  },
+  {
+   "type": "gen_start",
+   "t": 27249,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "gen_end",
+   "t": 33804,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 86,
+   "y": 724,
+   "duration": 394,
+   "minFeetY": 599,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 53.4
+  },
+  {
+   "type": "level_win",
+   "t": 33804,
+   "level": 1,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 20847,
+   "levelTime": 20847,
+   "fails": 0,
+   "restarts": 0
+  }
+ ]
+}

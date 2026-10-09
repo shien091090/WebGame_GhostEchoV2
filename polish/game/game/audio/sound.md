@@ -1,6 +1,8 @@
-# 幽影接力 音效說明(polish-3)
+# 幽影接力 音效說明(polish-4)
 
-相對 polish-2: **新增事件 `timeTick`、`hookDenied`**(interface.json 已列, RD 照下表接); 其餘事件、音量、opts、音樂全部不變。
+相對 polish-3: **完全不變**。spec 本輪只改翹翹板畫法, 音效清單與背景音樂沒動; interface.json 的 30 個事件、4 首曲名與本表一一對應, 素材、音量、opts、呼叫時機照舊, RD 不用改接法。
+
+(polish-3 相對 polish-2 新增了 `timeTick`、`hookDenied`, 已實作。)
 
 ## 聲音風格
 

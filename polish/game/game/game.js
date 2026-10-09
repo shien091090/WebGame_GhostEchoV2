@@ -149,7 +149,7 @@
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
   function download(reason) {
     try {
-      var data = { project: 'WebGame_GhostEchoV2', build: 'polish-3', sessionStart: sessionStartISO, downloadedAt: isoNow(), reason: reason, events: events };
+      var data = { project: 'WebGame_GhostEchoV2', build: 'polish-4', sessionStart: sessionStartISO, downloadedAt: isoNow(), reason: reason, events: events };
       events = [];
       var d = new Date();
       var name = 'gamelog-WebGame_GhostEchoV2-' + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '-' + pad2(d.getHours()) + pad2(d.getMinutes()) + pad2(d.getSeconds()) + '.json';
@@ -741,7 +741,7 @@
     L.platforms.forEach(function (p) { Art.drawPlatform(ctx, { x: p.x, y: p.y, w: p.w, h: p.h, solid: !!p.solid }); });
     L.walls.forEach(function (w) { Art.drawWall(ctx, { x: w.x, y: w.y, w: w.w, h: w.h }); });
     L.spikes.forEach(function (s) { Art.drawSpike(ctx, { x: s.x, y: s.y, w: s.w }); });
-    W.seesaws.forEach(function (s) { Art.drawSeesaw(ctx, { x: s.x, y: s.y, tilt: s.tilt }); });
+    W.seesaws.forEach(function (s) { Art.drawSeesaw(ctx, { x: s.x, y: s.y, tilt: s.tilt, swing: s.age < 0 ? 0 : Math.min(1, s.age / SEESAW_T) }); });
     if (L.plateLift) Art.drawPlate(ctx, { x: L.plateLift.x, y: L.plateLift.y, pressed: W.plateLift, kind: 'lift' });
     if (L.plateGate) Art.drawPlate(ctx, { x: L.plateGate.x, y: L.plateGate.y, pressed: W.plateGate, kind: 'gate' });
     if (L.button) Art.drawButton(ctx, { x: L.button.x, y: L.button.y, pressed: W.buttonPressed });
