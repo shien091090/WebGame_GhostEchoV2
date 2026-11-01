@@ -1,6 +1,12 @@
-# 幽影接力 音效說明(polish-6)
+# 幽影接力 音效說明(polish-7)
 
-相對 polish-5: **音效、音樂完全不變**(spec 打磨第 6 輪明訂), 事件名、opts、素材、音量、呼叫時機都照舊, RD 不用改接法。唯一的文字修正: 第 1 階段的跳躍鍵帽改成只有 ↑(空白鍵不算打勾), 「同時觸發」表的例子跟著改。
+相對 polish-6:
+- **新增 3 個事件, 需要 RD 接**: `pauseOpen`(按 Esc 打開暫停選單)、`pauseClose`(選「繼續」或再按 Esc 關閉)、`menuMove`(選單 ↑ / ↓ 真的移動了選擇)。interface.json 的 36 個事件、4 首曲名與本表一一對應
+- `pauseOpen` 會**自動**把背景音樂降到 30% 並悶化、暫停蓄力聲; `pauseClose` 自動恢復(瞄準中打開的, 關掉後回到瞄準的悶化、蓄力聲從原值接著響)。RD 不用另外處理音樂
+- `restart` 改成暫停選單選「重來」時呼叫(R 鍵已移除); `whistle` 改成空白鍵觸發。素材、音量不變
+- 其餘 33 個事件、4 首曲子的素材、音量、opts 照舊
+
+(polish-6 相對 polish-5: **音效、音樂完全不變**(spec 打磨第 6 輪明訂), 事件名、opts、素材、音量、呼叫時機都照舊, RD 不用改接法。唯一的文字修正: 第 1 階段的跳躍鍵帽改成只有 ↑(空白鍵不算打勾), 「同時觸發」表的例子跟著改。)
 
 (polish-5 相對 polish-4:)
 - **新增 3 個事件, 需要 RD 接**: `tutorialShow`(教學泡泡彈出)、`tutorialKey`(第 1 階段鍵帽打勾, 帶 `index`)、`tutorialDone`(教學階段完成)。interface.json 的 33 個事件、4 首曲名與本表一一對應
@@ -18,9 +24,9 @@
 
 - `index.html` 在 `game.js` **之前**載入: `<script src="audio/sound.js"></script>`(全域 `window.Sound`, 不是 module)
 - 第一次按任何鍵時呼叫 `Sound.init()`(重複呼叫無害)。init 之前的 `play` 一律靜默丟棄; **`playMusic` 在 init 前呼叫會被記住, init 時才開始播**, 所以開網頁時可以直接 `Sound.playMusic('title')`
-- M 鍵: `Sound.setMuted(!Sound.isMuted())`; HUD 的喇叭圖示用 `Sound.isMuted()` 取值。靜音狀態只存在記憶體(本次開網頁期間保留)
+- M 鍵: `Sound.setMuted(!Sound.isMuted())`; 聲音開關圖示(`drawSoundIcon`)用 `Sound.isMuted()` 取值。靜音狀態只存在記憶體(本次開網頁期間保留)
 - 未知事件名 / 曲名靜默忽略, 不會丟例外
-- sound.js 約 13.8 MB(音訊資料以 base64 內嵌, 才能在 file:// 下用 Web Audio 做瞄準時的悶化), 載入時解碼音樂約需不到 1 秒; 解碼完成前要求的曲子會在解碼後自動開始
+- sound.js 約 13.9 MB(音訊資料以 base64 內嵌, 才能在 file:// 下用 Web Audio 做瞄準時的悶化), 載入時解碼音樂約需不到 1 秒; 解碼完成前要求的曲子會在解碼後自動開始
 
 ### 共用 opts
 
@@ -39,12 +45,12 @@
 | `jump` | jump | 角色起跳那一幀(含從幽靈頭上起跳)。**被翹翹板彈起、鉤爪射出時不要叫** | — | sfx_jump.wav | 0.35 | 否 |
 | `land` | land | 角色從空中落到地面 / 平台 / 升降台 / 翹翹板。**落到幽靈頭頂改叫 headStand, 不要兩個都叫** | — | sfx_land.wav | 0.30 | 否 |
 | `headStand` | headStand | 角色落到幽靈頭頂那一幀 | — | sfx_head_stand.wav + sfx_land.wav(小聲墊底) | 0.50 / 0.18 | 否 |
-| `spawn` | spawn | 新一代出生那一幀(含每關第 1 代、R 重來後第 1 代) | — | sfx_spawn.wav | 0.45 | 否 |
+| `spawn` | spawn | 新一代出生那一幀(含每關第 1 代)。**暫停選單選「重來」後的第 1 代出生不要叫**(spec: 只播 restart) | — | sfx_spawn.wav | 0.45 | 否 |
 | `death` | death | 角色死亡那一幀(坑、尖刺、60 秒超時)。**被壓板壓死改叫 crush** | — | sfx_death.wav | 0.55 | 否 |
 | `timeTick` | timeTick(新) | 這一代剩餘時間跨過 5、4、3、2、1 秒那一幀各叫一次(共 5 聲; 例: timeLeft 從 > 5 變成 ≤ 5)。瞄準暫停中時間不動就不叫; 死亡 / 過關後不叫 | — | sfx_time_tick.wav(1250 Hz 短「滴」, 64 毫秒, 加了衰減) | 0.25 | 否 |
-| `whistle` | whistle | 按 C 且吹哨有效(第 6 關、場上有幽靈、非瞄準中) | — | sfx_whistle.wav | 0.50 | 否 |
+| `whistle` | whistle | 遊玩中按空白鍵且吹哨有效(吹哨已解鎖、場上有幽靈、非瞄準中, 依 spec 判定) | — | sfx_whistle.wav | 0.50 | 否 |
 | `aimStart` | aimStart | 按 Z 進入瞄準那一刻。**同時自動把背景音樂降到 30% 並悶化**, RD 不用另外處理 | — | sfx_aim_start.wav | 0.45 | 否 |
-| `aimCharge` | aimCharge | 瞄準中每幀呼叫一次, 帶當下蓄力值; 也可以只在進入瞄準時呼叫一次(之後聲音會照「1 秒到滿」自己往上滑)。蓄力滿時自己停 | `charge`: 0~1, 當下蓄力值;`stop`: true 時立刻停 | 程式產生(方波 + 三角波, 220 → 660 Hz 上揚) | 約 0.06~0.09 | 持續音 |
+| `aimCharge` | aimCharge | 瞄準中每幀呼叫一次, 帶當下蓄力值; 也可以只在進入瞄準時呼叫一次(之後聲音會照「1 秒到滿」自己往上滑)。蓄力滿時自己停。暫停選單開著時呼叫也無害(只記下蓄力值、不出聲) | `charge`: 0~1, 當下蓄力值;`stop`: true 時立刻停 | 程式產生(方波 + 三角波, 220 → 660 Hz 上揚) | 約 0.06~0.09 | 持續音 |
 | `aimFull` | aimFull | 蓄力剛到滿那一幀(只叫一次)。會順便停掉蓄力聲 | — | sfx_aim_full.wav | 0.45 | 否 |
 | `hookLaunch` | hookLaunch | 瞄準中按 Z 射出那一刻。會停掉蓄力聲、恢復背景音樂 | — | sfx_hook_whoosh.wav + sfx_hook_rise.wav 疊播 | 0.60 / 0.45 | 否 |
 | `hookCancel` | hookCancel | 瞄準中按 X 取消。會停掉蓄力聲、恢復背景音樂 | — | sfx_hook_cancel.wav | 0.40 | 否 |
@@ -63,12 +69,15 @@
 | `crush` | crush | 角色被壓板尖刺壓死那一幀(取代 death) | — | sfx_crush.wav | 0.65 | 否 |
 | `levelClear` | levelClear | 碰到終點旗那一幀(之後再 `playMusic('replay')`) | — | sfx_level_clear.wav | 0.65 | 否 |
 | `levelFail` | levelFail | 進入失敗畫面那一刻(第 3 代死亡演出結束) | — | sfx_level_fail.wav | 0.50 | 否 |
-| `restart` | restart | 按 R 整關重來 | — | sfx_restart.wav | 0.45 | 否 |
+| `restart` | restart(改) | 暫停選單選「重來」那一刻。**只叫 restart, 不要再叫 pauseClose**; 會自動解除暫停 / 瞄準的悶化、停掉保留的蓄力聲 | — | sfx_restart.wav | 0.45 | 否 |
 | `unlock` | unlock | 解鎖頁出現那一刻 | — | sfx_unlock.wav | 0.60 | 否 |
 | `uiPage` | uiPage(改) | 開始畫面按空白鍵開始、解鎖頁按空白鍵繼續、全破畫面按空白鍵回第 1 關(過關回放、失敗畫面按空白鍵不在 spec 清單內, 不叫) | — | sfx_ui_page.wav | 0.40 | 否 |
 | `tutorialShow` | tutorialShow(新) | 教學泡泡出現那一刻(pop 從 0 開始那一幀), 每個階段一次; 條件式階段再次出現也叫 | — | sfx_tutorial_show.wav(約 330→490 Hz 短「啵」, 60 毫秒, 加了衰減) | 0.30 | 否 |
 | `tutorialKey` | tutorialKey(新) | 第 1 階段某個鍵帽第一次打勾那一幀(pressed 由 false 變 true), 每個鍵一次 | `index`: 0 / 1 / 2 = **這是第幾個打勾的鍵**(依打勾先後, 不是哪一個鍵); 音高 Do → Mi → Sol 依序升高。可省: 省略時自動依呼叫次數 0、1、2 往上, `tutorialShow` 時歸零 | sfx_tutorial_key1 / 2 / 3.wav(金幣「叮」, 960 / 1225 / 1425 Hz) | 0.32 | 否 |
 | `tutorialDone` | tutorialDone(新) | 教學階段完成那一刻(done 從 0 開始那一幀) | — | sfx_tutorial_done.wav(上行琶音)+ 0.12 秒後 sfx_tutorial_sparkle.wav(高音「叮叮」) | 0.28 / 0.18 | 否 |
+| `pauseOpen` | pauseOpen(新) | 遊玩中(含瞄準中)按 Esc、暫停選單打開那一刻。**自動**: 背景音樂降到 30% 並悶化、蓄力聲暫停(記住蓄力值) | — | sfx_pause_open.wav(約 1.1 → 1.8 kHz 往上掃的選單音, 0.27 秒) | 0.45 | 否 |
+| `pauseClose` | pauseClose(新) | 選「繼續」或再按 Esc、暫停選單關閉那一刻(選「重來」時不叫, 改叫 restart)。**自動**: 解除暫停的悶化; 若是瞄準中打開的, 音樂維持瞄準的悶化、蓄力聲從原值接著響 | — | sfx_pause_close.wav(同一對, 約 2.1 → 0.9 kHz 往下掃, 0.27 秒) | 0.40 | 否 |
+| `menuMove` | menuMove(新) | 暫停選單裡按 ↑ / ↓ 且選擇真的換了那一刻(到頂 / 底沒移動就不叫) | — | sfx_menu_move.wav(約 660 Hz 短「嗒」, 49 毫秒, 加了衰減) | 0.28 | 否 |
 
 **aimCharge 為什麼是程式產生**: 它要跟著蓄力值即時、連續地升高音高, 長度又看玩家按多久而定; 找過 Kenney(Digital Audio、Sci-fi Sounds)和 OpenGameArt 的 512 Retro Sound Effects, 只有固定長度的上揚掃頻或固定音高的循環, 對不上可變的蓄力值, 所以用 Web Audio 振盪器即時產生(方波 + 三角波, 音色跟 8-bit 音效同一套)。
 
@@ -96,6 +105,19 @@ checkedCount++;
 Sound.play('tutorialDone');
 ```
 
+暫停選單範例:
+
+```js
+// 遊玩中(含瞄準中)按 Esc 打開
+Sound.play('pauseOpen');           // 音樂自動悶化、蓄力聲自動暫停
+// ↑ / ↓ 且選擇真的換了
+Sound.play('menuMove');
+// 選「繼續」或再按 Esc
+Sound.play('pauseClose');          // 自動恢復; 瞄準中打開的會回到瞄準的悶化
+// 選「重來」
+Sound.play('restart');             // 只叫這個, 不叫 pauseClose; 接著第 1 代出生不叫 spawn
+```
+
 ## 背景音樂
 
 `Sound.playMusic(曲名)`: 循環播放; 換到另一首時舊的淡出 0.6 秒。同一首重複呼叫不會重頭(可以每幀叫)。`Sound.stopMusic()` 淡出停止。
@@ -103,11 +125,19 @@ Sound.play('tutorialDone');
 | 曲名 | spec | 何時切 | 素材 | 相對音量 | 循環方式 |
 |---|---|---|---|---|---|
 | `title` | title | 開始畫面、解鎖頁(開網頁時就可以叫, init 時才開始播) | music_title.mp3(Monkeys Spinning Monkeys, 明亮俏皮的弦樂撥奏) | 0.40 | 53 秒 / 32 小節, 段尾 2 秒淡出後從頭 |
-| `play` | play | 遊玩中(每關同一首); 死亡演出、R 重來都**不要**重叫別首 | music_play.mp3(Easy Lemon, 輕鬆的吉他與木琴) | 0.34 | 70 秒 / 24 小節, 段尾 2 秒淡出後從頭 |
+| `play` | play | 遊玩中(每關同一首); 死亡演出、暫停選單、選單「重來」都**不要**重叫別首 | music_play.mp3(Easy Lemon, 輕鬆的吉他與木琴) | 0.34 | 70 秒 / 24 小節, 段尾 2 秒淡出後從頭 |
 | `replay` | replay | 過關回放 | music_replay.mp3(Fluffing a Duck, 滑稽可愛的管樂) | 0.40 | 整首 67 秒, 播完從頭 |
 | `ending` | ending | 全破畫面 | music_ending.mp3(Life of Riley, 溫暖的烏克麗麗與鐘琴) | 0.40 | 56 秒 / 24 小節, 段尾 2 秒淡出後從頭 |
 
-- 瞄準時的「降到 30% 並悶化」由 `aimStart` 自動觸發, `hookLaunch` / `hookCancel` / `restart` / `death` / `crush` / `levelClear` / `levelFail` 或換曲時自動恢復
+- 「降到 30% 並悶化」有兩個原因, 任一個在就悶化, 兩個都解掉才恢復(RD 都不用另外處理):
+
+| 原因 | 開始事件 | 結束事件 |
+|---|---|---|
+| 瞄準 | `aimStart` | `hookLaunch`、`hookCancel`、`death`、`crush` |
+| 暫停選單 | `pauseOpen` | `pauseClose` |
+| (兩者一起清) | — | `restart`、`levelClear`、`levelFail`、`stopMusic()`、換到另一首曲子 |
+
+- 換曲時保留 0.15 秒內剛設的原因(同一幀先開暫停再換曲不會漏)。這些狀態在靜音中、或同一事件連按被限頻時一樣會記, 取消靜音後音量正確
 - 失敗畫面不換曲(沿用 play), 失敗後按空白鍵重來也不用重叫
 
 ## 同時觸發的處理
@@ -134,6 +164,13 @@ Sound.play('tutorialDone');
 | tutorialDone 與 headStand / hookLaunch / buttonPress 同一幀 | 照叫; tutorialDone 音量 0.28 / 0.18, 比這三個(0.50~0.60)小一號, 動作聲在前面 |
 | tutorialDone(0.8 秒特效)之後下一個泡泡: tutorialShow | 各自照叫; 琶音約 0.4 秒就結束, 不重疊 |
 | tutorialShow 與機關聲同一幀(例: 泡泡在門開時出現) | 照叫; 「啵」只有 60 毫秒、音量 0.30 |
+| 瞄準中按 Esc: pauseOpen(蓄力聲正在響) | pauseOpen 自動停掉蓄力聲並記住蓄力值; 選單開著時 RD 繼續叫 aimCharge 也不出聲 |
+| 暫停選單關閉回到瞄準: pauseClose | 蓄力聲從原值接著響, 音樂維持瞄準的悶化; RD 下一幀照常叫 aimCharge 即可 |
+| 暫停選單選「重來」: restart(+ 第 1 代出生) | 只叫 restart, 不叫 pauseClose、不叫 spawn; restart 會清掉所有悶化原因與保留的蓄力值 |
+| 快速連按 Esc: pauseOpen / pauseClose 交替 | 同名 0.1 秒內只響一次, 但暫停狀態每次都記, 最後狀態一定正確 |
+| 連按 ↑ / ↓: menuMove 反覆 | 0.04 秒內重複只響一次; 只有 49 毫秒、音量 0.28, 不會吵 |
+| 暫停選單開著時按 M | 靜音照常切換; 選單開關的悶化狀態不受影響 |
+| aimStart 與 pauseOpen 聽起來的差別 | aimStart 是高低交錯的「嗚哇」(約 950 / 460 Hz 來回), pauseOpen 是一路往上的掃頻(1.1 → 1.8 kHz), 像選單打開 |
 
 ## 理念或經驗落實
 
@@ -144,4 +181,6 @@ Sound.play('tutorialDone');
 - **用 OfflineAudioContext 在載入時解碼內嵌 mp3**(經驗「背景音樂要跟拍子時鐘對齊…」): 沿用同一個做法讓 file:// 下也能用 Web Audio 做悶化; 本作不要求無縫循環, 改成段尾淡出再從頭, 不需要校正解碼器開頭填充
 - **沿用任務保留同一套聲音**: 新增的 timeTick、hookDenied 也取自同一個 8-bit 音效包(Simple Bleeps 類), 響度照上一版同一套流程統一; 兩個原檔是平坦方波, 另加短衰減讓「滴 / 嗒」不刺耳(spec 要求不讓人慌、不是錯誤警報), 起音都在 1 毫秒內
 - **polish-5 的教學三聲也沿用同一套**: 都取自同一個 8-bit 音效包, 響度流程與上一版相同, 起音全部在 1 毫秒內(量「到峰值一成」為 0.0 毫秒), 泡泡彈出時立刻有聲; 刻意避開已用過的檔(aimFull 的金幣、uiPage 的選單音、spawn / unlock 的能力音), 讓教學音和遊戲事件聽得出不同。tutorialKey 三段音高用同一個「叮」重取樣出 Do / Mi / Sol(大三和弦), 集點感來自音高往上; tutorialDone 選 0.25 秒的短琶音, 比 levelClear 的 0.51 秒號角短一半、音量也低, 符合 spec「比 levelClear 小一號」
+- **polish-7 的暫停選單三聲也沿用同一套**(沿用任務保留同一套聲音): 取自同一個 8-bit 音效包的 Pause Sounds 與 Menu Sounds, 響度流程與上一版相同, 起音都在 1 毫秒內(量「到峰值一成」0.1 毫秒), 按 Esc 立刻有聲。pauseOpen / pauseClose 用同一對開 / 關(往上掃 / 往下掃), 刻意避開瞄準用過的那一對(aimStart / hookCancel), 讓「選單」和「時間被按住」聽得出不同; menuMove 避開 uiPage、tutorialShow 用過的兩支, 挑音高最低(約 660 Hz)、最短的一支, 原檔是平坦方波, 比照 timeTick 加短衰減讓「嗒」更輕
+- **壓低音樂的原因變多時用原因表、掛勾放最前面**(經驗「規格要慢動作時背景音樂降一半…」的續條): 悶化改成「瞄準 / 暫停」兩個原因, 任一在就悶化; 掛勾放在 play 最前面, 不受靜音與同名限頻影響; 換曲時保留 0.15 秒內剛設的原因。冒煙測試逐一驗了: 瞄準中開關暫停、靜音中開關暫停、同一幀連開連關、暫停中選重來、暫停後同一幀換曲
 - spec 要求「title 不要有點毛」: 換成風格欄標 Bright / Humorous / Uplifting 的曲子, 沒有選 Mysterious / Dark 的

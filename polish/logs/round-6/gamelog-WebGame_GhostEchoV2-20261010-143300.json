@@ -1,0 +1,126 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-6",
+ "sessionStart": "2026-10-10T14:30:37+08:00",
+ "downloadedAt": "2026-10-10T14:33:00+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "level_start",
+   "t": 97846,
+   "level": 4,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 97846,
+   "level": 4,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_show",
+   "t": 98319,
+   "level": 4,
+   "stage": "lift",
+   "attempt": 1,
+   "gen": 1,
+   "count": 1
+  },
+  {
+   "type": "tutorial_done",
+   "t": 99520,
+   "level": 4,
+   "stage": "lift",
+   "attempt": 1,
+   "gen": 1,
+   "showTime": 1202,
+   "auto": false,
+   "x": 121,
+   "y": 1144
+  },
+  {
+   "type": "gen_end",
+   "t": 105354,
+   "level": 4,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 452,
+   "minFeetY": 1200,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 52.5
+  },
+  {
+   "type": "gen_start",
+   "t": 105951,
+   "level": 4,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "gen_end",
+   "t": 124083,
+   "level": 4,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "spike",
+   "x": 56,
+   "y": 724,
+   "duration": 1089,
+   "minFeetY": 611,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 41.9
+  },
+  {
+   "type": "gen_start",
+   "t": 124687,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "hook",
+   "t": 139535,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "result": "launch",
+   "ghostAir": true,
+   "charge": 1,
+   "x": 316,
+   "y": 724
+  },
+  {
+   "type": "gen_end",
+   "t": 143049,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 603,
+   "y": 304,
+   "duration": 1030,
+   "minFeetY": 204,
+   "hooksUsed": 1,
+   "whistles": 0,
+   "timeLeft": 42.8
+  },
+  {
+   "type": "level_win",
+   "t": 143049,
+   "level": 4,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 45203,
+   "levelTime": 45203,
+   "fails": 0,
+   "restarts": 0
+  }
+ ]
+}

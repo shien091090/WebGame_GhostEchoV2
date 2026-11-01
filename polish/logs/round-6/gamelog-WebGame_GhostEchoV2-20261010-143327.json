@@ -1,0 +1,133 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-6",
+ "sessionStart": "2026-10-10T14:30:37+08:00",
+ "downloadedAt": "2026-10-10T14:33:27+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "level_start",
+   "t": 143507,
+   "level": 5,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 143507,
+   "level": 5,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_show",
+   "t": 143986,
+   "level": 5,
+   "stage": "seesaw",
+   "attempt": 1,
+   "gen": 1,
+   "count": 1
+  },
+  {
+   "type": "tutorial_done",
+   "t": 146952,
+   "level": 5,
+   "stage": "seesaw",
+   "attempt": 1,
+   "gen": 1,
+   "showTime": 2966,
+   "auto": false,
+   "x": 116,
+   "y": 1144
+  },
+  {
+   "type": "gen_end",
+   "t": 151667,
+   "level": 5,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 680,
+   "y": 1291,
+   "duration": 491,
+   "minFeetY": 1031,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 51.8
+  },
+  {
+   "type": "gen_start",
+   "t": 152271,
+   "level": 5,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "seesaw_launch",
+   "t": 155715,
+   "level": 5,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "gen_end",
+   "t": 161486,
+   "level": 5,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "pit",
+   "x": 680,
+   "y": 1297,
+   "duration": 554,
+   "minFeetY": 351,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 50.8
+  },
+  {
+   "type": "gen_start",
+   "t": 162084,
+   "level": 5,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "hook",
+   "t": 168632,
+   "level": 5,
+   "attempt": 1,
+   "gen": 3,
+   "result": "launch",
+   "ghostAir": true,
+   "charge": 1,
+   "x": 532,
+   "y": 464
+  },
+  {
+   "type": "gen_end",
+   "t": 169466,
+   "level": 5,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 86,
+   "y": 204,
+   "duration": 368,
+   "minFeetY": 195,
+   "hooksUsed": 1,
+   "whistles": 0,
+   "timeLeft": 53.9
+  },
+  {
+   "type": "level_win",
+   "t": 169466,
+   "level": 5,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 25959,
+   "levelTime": 25959,
+   "fails": 0,
+   "restarts": 0
+  }
+ ]
+}

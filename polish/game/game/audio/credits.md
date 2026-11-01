@@ -1,6 +1,6 @@
 # 音訊素材署名
 
-本作 `assets/` 內共 40 個檔案, 每檔一列。音效全部是 CC0(不需署名, 仍列出來源); 背景音樂是 CC BY 4.0, **遊戲畫面上(例: 全破畫面或說明頁最後)必須放署名**, 署名文字見本檔最下方。
+本作 `assets/` 內共 43 個檔案(polish-7 新增 3 個暫停選單音效), 每檔一列。音效全部是 CC0(不需署名, 仍列出來源); 背景音樂是 CC BY 4.0, **遊戲畫面上(例: 全破畫面或說明頁最後)必須放署名**, 署名文字見本檔最下方。
 
 `sound.js` 尾端內嵌的資料就是這些檔案(音效以 PCM、音樂以原 mp3 位元組 base64 內嵌), 不另計來源。
 
@@ -48,6 +48,9 @@
 | sfx_tutorial_key3.wav | tutorialKey(index 2, polish-5 新增) | sfx_coin_single5.wav | Juhani Junkala | CC0 | 變速為 1.124 倍(比 key1 高純五度, 約 1425 Hz) |
 | sfx_tutorial_done.wav | tutorialDone(琶音, polish-5 新增) | sfx_sounds_powerup10.wav | Juhani Junkala | CC0 | 無 |
 | sfx_tutorial_sparkle.wav | tutorialDone(閃亮聲, polish-5 新增) | sfx_coin_double4.wav | Juhani Junkala | CC0 | 無 |
+| sfx_pause_open.wav | pauseOpen(polish-7 新增) | sfx_sounds_pause4_in.wav | Juhani Junkala | CC0 | 無 |
+| sfx_pause_close.wav | pauseClose(polish-7 新增) | sfx_sounds_pause4_out.wav | Juhani Junkala | CC0 | 無 |
+| sfx_menu_move.wav | menuMove(polish-7 新增) | sfx_menu_move4.wav | Juhani Junkala | CC0 | 前 5 毫秒後加指數衰減(時間常數 20 毫秒), 原檔是平坦方波 |
 
 ## 背景音樂(CC BY 4.0)
 

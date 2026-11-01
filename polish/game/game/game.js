@@ -1,72 +1,78 @@
-/* 幽影接力 打磨版第 6 輪 — 邏輯 + 嵌入式新手教學 + 呼叫 Art / Sound */
+/* 幽影接力 打磨版第 7 輪 — 16:9 橫式 1280×720; 邏輯 + 嵌入式新手教學 + 暫停選單 + 呼叫 Art / Sound */
 (function () {
   'use strict';
 
   // ===== 常數 =====
   var DT = 1 / 60;
-  var G = 2400, JUMP_V = 900, WALK = 260;
-  var PW = 40, PH = 56;
-  var SPAWN = { x: 60, y: 1144 };
-  var HOOK_RANGE = 220, HOOK_AIR = 1700, HOOK_GND = 800, CHARGE_T = 1;
-  var LAUNCH_T = 0.3, ROPE_T = 0.15, LIFT_SPD = 200, SEESAW_V = 1900, SEESAW_T = 0.3;
+  var G = 1200, JUMP_V = 450, WALK = 200;
+  var PW = 20, PH = 28;
+  var SPAWN = { x: 40, y: 592 };
+  var HOOK_RANGE = 110, HOOK_AIR = 850, HOOK_GND = 400, CHARGE_T = 1;
+  var LAUNCH_T = 0.3, ROPE_T = 0.15, LIFT_SPD = 100, SEESAW_V = 950, SEESAW_T = 0.3;
   var DEATH_T = 0.6, REC_MAX = 3600, ROUTE_N = 300, RING_T = 0.4;
   var LEVEL_COUNT = 7, MAX_GEN = 3, HOOK_MAX = 2;
-  var CR_WARN_F = 18, CR_SPD = 600, CR_TOP = 100;
-  var CEILING = 100, TIME_WARN_F = 600, TICK_S = 5;
-  var CW = (window.Art && Art.canvas && Art.canvas.width) || 720;
-  var CH = (window.Art && Art.canvas && Art.canvas.height) || 1280;
+  var CR_WARN_F = 18, CR_SPD = 300, CR_TOP = 70;
+  var CEILING = 70, TIME_WARN_F = 600, TICK_S = 5;
+  var GROUND_Y = 620, GROUND_H = 100;
+  var LIFT_TOP = 410, LIFT_W = 60, GATE_W = 12, GATE_H = 110, BTN_W = 40, BTN_H = 6, GOAL_W = 24, GOAL_H = 40, PLT_H = 12, SPIKE_H = 12;
+  var SS_W = 100, SS_LAND_W = 40, SS_LAUNCH_X = 60;
+  var CW = (window.Art && Art.canvas && Art.canvas.width) || 1280;
+  var CH = (window.Art && Art.canvas && Art.canvas.height) || 720;
+  var SND_ICON_PLAY = { x: 1228, y: 80 }, SND_ICON_MENU = { x: 1228, y: 12 };
 
-  var BUILD = 'polish-6';
+  var BUILD = 'polish-7';
   var BANNER_T = 1.5, TUT_FX_T = 0.8, TUT_GAP = 0.4, TUT_POP_T = 0.25;
   // (本輪沒有需要的佔位圖形)
 
   // ===== 關卡資料 =====
-  function P_(x, y, w, solid) { return { x: x, y: y, w: w, h: 24, solid: !!solid }; }
+  function P_(x, y, w, solid) { return { x: x, y: y, w: w, h: PLT_H, solid: !!solid }; }
   var LEVELS = [
     null,
     { // 1
-      title: '踩著上去', hint: '一個人到不了, 先死一次', newThing: 'relay',
-      platforms: [P_(280, 990, 340), P_(0, 780, 400)], spikes: [], walls: [],
-      goal: { x: 40, y: 700 }
+      title: '踩著上去', hint: '一個人到不了, 先死一次', newThing: 'relay', banner: [400, 100],
+      platforms: [P_(440, 515, 600), P_(0, 410, 680)], spikes: [], walls: [], groundW: 1000,
+      goal: { x: 20, y: 370 }
     },
     { // 2
-      title: '一鉤飛天', hint: '鉤住跳起來的幽靈', newThing: 'hook',
-      platforms: [P_(160, 780, 560), P_(0, 360, 440)], spikes: [{ x: 660, y: 756, w: 60 }], walls: [],
-      goal: { x: 40, y: 280 }
+      title: '一鉤飛天', hint: '鉤住跳起來的幽靈', newThing: 'hook', banner: [700, 90],
+      platforms: [P_(320, 410, 680), P_(0, 200, 640)], spikes: [{ x: 940, y: 398, w: 60 }], walls: [], groundW: 900,
+      goal: { x: 20, y: 160 }
     },
     { // 3
-      title: '守門的人', hint: '有人踩住, 同色的門才會開', newThing: 'gate',
-      platforms: [P_(0, 780, 460), P_(120, 360, 600)], spikes: [{ x: 0, y: 756, w: 60 }],
-      walls: [{ x: 520, y: 384, w: 24, h: 316 }],
-      plateGate: { x: 340, y: 768 }, gate: { x: 520, y: 140, delay: 0.6 },
-      goal: { x: 640, y: 280 }
+      title: '守門的人', hint: '有人踩住, 同色的門才會開', newThing: 'gate', banner: [780, 230],
+      platforms: [P_(0, 410, 600), P_(160, 200, 640)], spikes: [{ x: 0, y: 398, w: 30 }],
+      walls: [{ x: 630, y: 212, w: 12, h: 158 }], groundW: 900,
+      plateGate: { x: 440, y: 404 }, gate: { x: 630, y: 90, delay: 0.6 },
+      goal: { x: 740, y: 160 }
     },
     { // 4
-      title: '升降接力', hint: '電梯也要有人踩住', newThing: 'lift',
-      platforms: [P_(0, 780, 480), P_(240, 360, 480)], spikes: [{ x: 0, y: 756, w: 60 }],
-      walls: [{ x: 560, y: 384, w: 24, h: 316 }],
-      plateLift: { x: 160, y: 1188 }, lift: { x: 480 },
-      plateGate: { x: 80, y: 768 }, gate: { x: 560, y: 140, delay: 0.3 },
-      goal: { x: 640, y: 280 }
+      title: '升降接力', hint: '電梯也要有人踩住', newThing: 'lift', banner: [780, 230],
+      platforms: [P_(0, 410, 592), P_(300, 200, 500)], spikes: [{ x: 0, y: 398, w: 30 }],
+      walls: [{ x: 640, y: 212, w: 12, h: 158 }], groundW: 880,
+      plateLift: { x: 200, y: 614 }, lift: { x: 592 },
+      plateGate: { x: 50, y: 404 }, gate: { x: 640, y: 90, delay: 0.3 },
+      goal: { x: 740, y: 160 }
     },
     { // 5
-      title: '翹翹板', hint: '落在板子一頭, 另一頭會彈起', newThing: 'seesaw',
-      platforms: [P_(200, 520, 460), P_(0, 260, 320)], spikes: [], walls: [],
-      seesaws: [{ x: 100, y: 1188 }],
-      goal: { x: 40, y: 180 }
+      title: '翹翹板', hint: '落在板子一頭, 另一頭會彈起', newThing: 'seesaw', banner: [500, 110],
+      platforms: [P_(250, 280, 610), P_(0, 150, 420)], spikes: [], walls: [], groundW: 800,
+      seesaws: [{ x: 200, y: 614 }],
+      goal: { x: 20, y: 110 }
     },
     { // 6
-      title: '叫他回來', hint: '吹哨, 讓他再踩一次按鈕', newThing: 'button',
-      platforms: [], spikes: [{ x: 0, y: 1176, w: 40 }], walls: [],
-      button: { x: 100, y: 1188 }, crusher: { x: 200, w: 460, up: 1110, down: 1200, riseF: 102 }, groundW: 720,
-      goal: { x: 672, y: 1120 }
+      title: '叫他回來', hint: '吹哨, 讓他再踩一次按鈕', newThing: 'button', banner: [640, 200],
+      platforms: [], spikes: [{ x: 0, y: 608, w: 24 }], walls: [], groundW: 1280,
+      button: { x: 62, y: 614 },
+      crusher: { x: 160, w: 360, up: 575, down: 620, riseF: 102, lx: 340, lyOff: 24, keySide: 'right' },
+      goal: { x: 526, y: 580 }
     },
     { // 7
-      title: '撐住壓板', hint: '這次壓板在最上層', newThing: 'final',
-      platforms: [P_(340, 520, 320), P_(0, 260, 500, true), P_(500, 260, 220)], spikes: [], walls: [],
-      seesaws: [{ x: 300, y: 1188 }],
-      button: { x: 160, y: 1188 }, crusher: { x: 140, w: 360, up: 170, down: 260, riseF: 72 },
-      goal: { x: 40, y: 180 }
+      title: '撐住壓板', hint: '這次壓板在最上層', newThing: 'final', banner: [780, 330],
+      platforms: [P_(230, 280, 470), P_(0, 150, 350, true), P_(350, 150, 450)], spikes: [], walls: [], groundW: 640,
+      seesaws: [{ x: 170, y: 614 }],
+      button: { x: 100, y: 614 },
+      crusher: { x: 70, w: 280, up: 105, down: 150, riseF: 72, lx: 310, lyOff: 20, keySide: 'left' },
+      goal: { x: 20, y: 110 }
     }
   ];
 
@@ -86,9 +92,12 @@
     hookLeft: HOOK_MAX, hooksUsed: 0, whistles: 0, minFeetY: 0,
     ghostMoved: false, btnPlayerDone: false, btnGhostDone: false,
     tb: null, tickCeil: 99, timeWarned: false,
-    rings: [], dyingT: 0, replay: null, lateWhistle: false
+    rings: [], dyingT: 0, replay: null, lateWhistle: false,
+    // 暫停選單
+    paused: false, pauseSel: 0, pauseT0: 0, pauseLevelMs: 0, quietF: 0, spawnSilent: false
   };
-  var cmd = { z: false, x: false, c: false, r: false, jump: false };
+  // cmd.c = 吹哨(空白鍵)
+  var cmd = { z: false, x: false, c: false, jump: false };
   var keys = { left: false, right: false, jump: false };
   var jumpDown = { ArrowUp: false };
   var events = [];
@@ -150,7 +159,7 @@
     var b = L.button;
     for (var i = 0; i < rec.length; i++) {
       var r = rec[i];
-      if (r.g && Math.abs(r.y + PH - (b.y + 12)) < 0.5 && ov(r.x, r.x + PW, b.x, b.x + 80)) return i;
+      if (r.g && Math.abs(r.y + PH - (b.y + BTN_H)) < 0.5 && ov(r.x, r.x + PW, b.x, b.x + BTN_W)) return i;
     }
     return null;
   }
@@ -168,8 +177,8 @@
   function newWorld(lv) {
     var L = LEVELS[lv];
     return {
-      lv: lv, L: L, ground: { x: 0, y: 1200, w: L.groundW || 600, h: 80, solid: true },
-      liftY: 1200, liftDir: 0, liftActive: false,
+      lv: lv, L: L, ground: { x: 0, y: GROUND_Y, w: L.groundW, h: GROUND_H, solid: true },
+      liftY: GROUND_Y, liftDir: 0, liftActive: false,
       gateOpen: false, gateT: 0,
       seesaws: (L.seesaws || []).map(function (s) { return { x: s.x, y: s.y, age: -1, tilt: 0 }; }),
       plateGate: false, plateLift: false, buttonPressed: false,
@@ -177,7 +186,7 @@
     };
   }
   function resetWorldForGen(W) {
-    W.liftY = 1200; W.liftDir = 0; W.liftActive = false;
+    W.liftY = GROUND_Y; W.liftDir = 0; W.liftActive = false;
     W.gateOpen = false; W.gateT = 0;
     W.plateGate = false; W.plateLift = false; W.buttonPressed = false;
     W.seesaws.forEach(function (s) { s.age = -1; s.tilt = 0; });
@@ -188,7 +197,7 @@
     var L = W.L, a = [W.ground];
     L.platforms.forEach(function (p) { if (p.solid) a.push(p); });
     L.walls.forEach(function (w) { a.push(w); });
-    if (L.gate && !W.gateOpen) a.push({ x: L.gate.x, y: L.gate.y, w: 24, h: 220 });
+    if (L.gate && !W.gateOpen) a.push({ x: L.gate.x, y: L.gate.y, w: GATE_W, h: GATE_H });
     return a;
   }
   // 升降台: 回傳位移
@@ -196,8 +205,8 @@
     if (!W.L.lift) return 0;
     var old = W.liftY, dir = 0;
     W.liftActive = pressed;
-    if (pressed && W.liftY > 780) { W.liftY = Math.max(780, W.liftY - LIFT_SPD * dt); dir = -1; }
-    else if (!pressed && W.liftY < 1200) { W.liftY = Math.min(1200, W.liftY + LIFT_SPD * dt); dir = 1; }
+    if (pressed && W.liftY > LIFT_TOP) { W.liftY = Math.max(LIFT_TOP, W.liftY - LIFT_SPD * dt); dir = -1; }
+    else if (!pressed && W.liftY < GROUND_Y) { W.liftY = Math.min(GROUND_Y, W.liftY + LIFT_SPD * dt); dir = 1; }
     if (dir !== 0 && dir !== W.liftDir) {
       snd('liftMove', { dir: dir < 0 ? 'up' : 'down' });
       if (dir < 0 && W === S.W && S.screen === 'play') tEvent('lift');
@@ -216,7 +225,7 @@
     } else if (W.gateOpen) {
       W.gateT += dt;
       if (W.gateT >= L.gate.delay) {
-        var blocked = playerRect && rectOv(playerRect.x, playerRect.y, PW, PH, L.gate.x, L.gate.y, 24, 220);
+        var blocked = playerRect && rectOv(playerRect.x, playerRect.y, PW, PH, L.gate.x, L.gate.y, GATE_W, GATE_H);
         if (!blocked) { W.gateOpen = false; W.gateT = 0; snd('gateClose'); }
       }
     }
@@ -260,10 +269,10 @@
   // 實體: {x, y, g(著地)}
   function platePressed(plate, ents) {
     if (!plate) return false;
-    var plane = plate.y + 12;
+    var plane = plate.y + BTN_H;
     for (var i = 0; i < ents.length; i++) {
       var e = ents[i];
-      if (e.g && Math.abs(e.y + PH - plane) < 0.5 && ov(e.x, e.x + PW, plate.x, plate.x + 80)) return true;
+      if (e.g && Math.abs(e.y + PH - plane) < 0.5 && ov(e.x, e.x + PW, plate.x, plate.x + BTN_W)) return true;
     }
     return false;
   }
@@ -271,7 +280,7 @@
   function seesawLandIndex(W, e) {
     for (var i = 0; i < W.seesaws.length; i++) {
       var s = W.seesaws[i];
-      if (Math.abs(e.y + PH - (s.y + 12)) < 0.5 && ov(e.x, e.x + PW, s.x, s.x + 80)) return i;
+      if (Math.abs(e.y + PH - (s.y + BTN_H)) < 0.5 && ov(e.x, e.x + PW, s.x, s.x + SS_LAND_W)) return i;
     }
     return -1;
   }
@@ -279,7 +288,8 @@
   // ===== 關卡流程 =====
   function setScreen(sc) {
     S.screen = sc;
-    cmd.z = cmd.x = cmd.c = cmd.r = false;
+    S.paused = false;
+    cmd.z = cmd.x = cmd.c = false;
     clearJump();
   }
   function startLevel(cause) {
@@ -287,7 +297,8 @@
     setScreen('play');
     S.phase = 'play';
     S.banner = first ? 0 : -1;
-    if (first) { S.attempt = 1; S.fails = 0; S.restarts = 0; S.levelStartT = nowMs(); }
+    S.quietF = 0;
+    if (first) { S.attempt = 1; S.fails = 0; S.restarts = 0; S.levelStartT = nowMs(); S.pauseLevelMs = 0; }
     else S.attempt++;
     S.attemptT0 = nowMs();
     S.recs = [];
@@ -314,11 +325,11 @@
     S.rings = [];
     S.lateWhistle = false; T.whistleFlag = false;
     if (g >= 2 && T.crushPending) { T.crushPending = false; if (!T.st.chain.done) T.chainArmed = true; }
-    cmd.z = cmd.x = cmd.c = cmd.r = false;
+    cmd.z = cmd.x = cmd.c = false;
     clearJump();
     evalPlates(true);
     pushRec();
-    snd('spawn');
+    if (S.spawnSilent) S.spawnSilent = false; else snd('spawn');
     emit('gen_start', { attempt: S.attempt, gen: g });
   }
   function ghostRec() { return S.ghost ? S.ghost[S.gf] : null; }
@@ -349,23 +360,47 @@
       download('lose');
     }
   }
+  // 暫停選單「重來」(整關重來的唯一入口); 呼叫時選單已關閉、pause_close 已記
   function doRestart() {
-    tEvent('R');
-    if (S.phase === 'play' && S.P && !S.P.dead) gen_end('restart');
     S.restarts++;
     emit('restart', { attempt: S.attempt, gen: S.gen, x: Math.round(S.P.x), y: Math.round(S.P.y), attemptTime: Math.round(nowMs() - S.attemptT0) });
+    tEvent('R');
+    if (S.phase === 'play' && S.P && !S.P.dead) gen_end('restart');
     snd('restart');
     S.aiming = false;
+    S.spawnSilent = true;   // 重來只播 restart, 不播 spawn
     startLevel('restart');
+  }
+  function openPause() {
+    if (S.screen !== 'play' || S.phase !== 'play' || S.paused) return;
+    S.paused = true; S.pauseSel = 0; S.pauseT0 = nowMs();
+    cmd.z = cmd.x = cmd.c = false; cmd.jump = false;
+    emit('pause_open', { attempt: S.attempt, gen: S.gen, aiming: S.aiming });
+    snd('pauseOpen');
+    if (S.aiming) snd('aimCharge', { stop: true });
+  }
+  function closePause(choice) {
+    if (!S.paused) return;
+    var ms = Math.round(nowMs() - S.pauseT0);
+    S.pauseLevelMs += ms;
+    S.paused = false;
+    cmd.z = cmd.x = cmd.c = false; cmd.jump = false;
+    emit('pause_close', { attempt: S.attempt, gen: S.gen, choice: choice, pauseTime: ms });
+    if (choice === 'restart') doRestart();
+    else {
+      snd('pauseClose');
+      if (S.aiming && S.charge < 1) snd('aimCharge', { charge: S.charge });
+    }
   }
   function win() {
     gen_end('win');
     S.phase = 'win';
     snd('levelClear');
-    emit('level_win', { attempt: S.attempt, gen: S.gen, attemptTime: Math.round(nowMs() - S.attemptT0),
-      levelTime: Math.round(nowMs() - S.levelStartT), fails: S.fails, restarts: S.restarts });
-    download('win');
+    // 批次尾端: gen_end → 教學收尾(tutorial_skip / tutorial_hide) → level_win → 下載
     tOnWin();
+    emit('level_win', { attempt: S.attempt, gen: S.gen, attemptTime: Math.round(nowMs() - S.attemptT0),
+      levelTime: Math.round(nowMs() - S.levelStartT), fails: S.fails, restarts: S.restarts, pauseTime: S.pauseLevelMs });
+    download('win');
     S.banner = -1;
     var recs = S.recs.slice(0, S.gen);
     S.replay = { recs: recs, G: S.gen, f: 0, prev: [], W: newWorld(S.level), L: recs[S.gen - 1].length };
@@ -420,17 +455,15 @@
   }
 
   function step() {
-    if (S.screen !== 'play') return;
-    if (S.banner >= 0) { S.banner += DT; if (S.banner >= BANNER_T) S.banner = -1; }
+    if (S.screen !== 'play' || S.paused) return;
+    if (S.banner >= 0) { S.banner += DT; S.quietF = 0; if (S.banner >= BANNER_T) S.banner = -1; }
+    else S.quietF++;
     tTick();
     stepInner();
     if (S.screen === 'play') tUpdate();
   }
   function stepInner() {
     var W = S.W, P = S.P, L = W.L;
-
-    if (cmd.r) { cmd.r = false; if (S.phase === 'play' || S.phase === 'dying') { doRestart(); return; } }
-    cmd.r = false;
 
     if (S.phase === 'win') { stepReplay(); return; }
     if (S.phase === 'lose') { return; }
@@ -440,7 +473,7 @@
         if (S.gen < MAX_GEN) startGen(S.gen + 1);
         else { S.phase = 'lose'; snd('levelFail'); }
       }
-      cmd.z = cmd.x = cmd.c = false;
+      cmd.z = cmd.x = cmd.c = false; cmd.jump = false;
       return;
     }
 
@@ -513,7 +546,7 @@
     // 升降台搭乘判定: 在升降台移動之前, 包含升降台與地面齊平時
     var onLift = false;
     if (L.lift && P.grounded) {
-      onLift = Math.abs(P.y + PH - W.liftY) <= 1 && ov(P.x, P.x + PW, L.lift.x, L.lift.x + 120);
+      onLift = Math.abs(P.y + PH - W.liftY) <= 0.5 && ov(P.x, P.x + PW, L.lift.x, L.lift.x + LIFT_W);
     }
     if (L.lift) updateLift(W, DT, W.plateLift);
     updateGate(W, DT, W.plateGate, P);
@@ -582,9 +615,9 @@
       };
       consider(W.ground.y, W.ground.x, W.ground.x + W.ground.w, 'ground');
       L.platforms.forEach(function (p) { consider(p.y, p.x, p.x + p.w, 'plat'); });
-      if (L.lift) consider(W.liftY, L.lift.x, L.lift.x + 120, 'lift');
+      if (L.lift) consider(W.liftY, L.lift.x, L.lift.x + LIFT_W, 'lift');
       L.walls.forEach(function (w) { consider(w.y, w.x, w.x + w.w, 'plat'); });
-      if (L.gate && !W.gateOpen) consider(L.gate.y, L.gate.x, L.gate.x + 24, 'plat');
+      if (L.gate && !W.gateOpen) consider(L.gate.y, L.gate.x, L.gate.x + GATE_W, 'plat');
       // 幽靈頭頂: 必須是從上方落下(上一幀腳底 ≤ 上一幀頭頂); 正被載著的角色已貼齊頭頂, 視為持續站著
       if (S.ghost) { var gg = ghostRec(); consider(gg.y, gg.x, gg.x + PW, 'ghost', carried ? gg.y : (gOldY === null ? gg.y : gOldY)); }
       if (best) { P.y = best.top - PH; P.vy = 0; P.grounded = true; P.src = best.src; }
@@ -598,7 +631,7 @@
       }
       P.y = ny;
     }
-    // 天花板: 頭頂到 y 100 停住, 往上速度歸零
+    // 天花板: 頭頂到 y 70 停住, 往上速度歸零
     if (P.y < CEILING) { P.y = CEILING; if (P.vy < 0) P.vy = 0; }
     if (P.grounded && !wasG) {
       if (P.src === 'ghost') { snd('headStand'); tEvent('head'); } else snd('land');
@@ -640,12 +673,12 @@
 
     // --- 結束條件(批次尾端判一次) ---
     var cause = null, won = false;
-    if (rectOv(P.x, P.y, PW, PH, L.goal.x, L.goal.y, 48, 80)) won = true;
+    if (rectOv(P.x, P.y, PW, PH, L.goal.x, L.goal.y, GOAL_W, GOAL_H)) won = true;
     else {
       if (P.y >= CH) cause = 'pit';
       for (var sp = 0; !cause && sp < L.spikes.length; sp++) {
         var sk = L.spikes[sp];
-        if (rectOv(P.x, P.y, PW, PH, sk.x, sk.y, sk.w, 24)) cause = 'spike';
+        if (rectOv(P.x, P.y, PW, PH, sk.x, sk.y, sk.w, SPIKE_H)) cause = 'spike';
       }
       if (!cause && W.cr && rectOv(P.x, P.y, PW, PH, L.crusher.x, CR_TOP, L.crusher.w, W.cr.bottom - CR_TOP)) cause = 'crush';
       if (!cause && S.rec.length >= REC_MAX) cause = 'timeout';
@@ -658,7 +691,7 @@
     var W = S.W, P = S.P, s = W.seesaws[i];
     triggerSeesaw(W, i);
     // 著地站在發射端的玩家被彈起
-    if (P && !P.dead && P.grounded && Math.abs(P.y + PH - (s.y + 12)) < 0.5 && ov(P.x, P.x + PW, s.x + 120, s.x + 200)) {
+    if (P && !P.dead && P.grounded && Math.abs(P.y + PH - (s.y + BTN_H)) < 0.5 && ov(P.x, P.x + PW, s.x + SS_LAUNCH_X, s.x + SS_W)) {
       P.vy = -SEESAW_V; P.vx = 0; P.launchT = 0; P.grounded = false; P.src = null;
       snd('seesawLaunch');
       emit('seesaw_launch', { attempt: S.attempt, gen: S.gen });
@@ -740,20 +773,27 @@
     L.platforms.forEach(function (p) { Art.drawPlatform(ctx, { x: p.x, y: p.y, w: p.w, h: p.h, solid: !!p.solid }); });
     L.walls.forEach(function (w) { Art.drawWall(ctx, { x: w.x, y: w.y, w: w.w, h: w.h }); });
     L.spikes.forEach(function (s) { Art.drawSpike(ctx, { x: s.x, y: s.y, w: s.w }); });
-    W.seesaws.forEach(function (s) { Art.drawSeesaw(ctx, { x: s.x, y: s.y, tilt: s.tilt, swing: s.age < 0 ? 0 : Math.min(1, s.age / SEESAW_T) }); });
+    W.seesaws.forEach(function (s) {
+      var sw = s.age >= 0;
+      Art.drawSeesaw(ctx, { x: s.x, y: s.y, tilt: s.tilt, swing: sw ? Math.min(1, s.age / SEESAW_T) : 1, swinging: sw });
+    });
     if (L.plateLift) Art.drawPlate(ctx, { x: L.plateLift.x, y: L.plateLift.y, pressed: W.plateLift, kind: 'lift' });
     if (L.plateGate) Art.drawPlate(ctx, { x: L.plateGate.x, y: L.plateGate.y, pressed: W.plateGate, kind: 'gate' });
     if (L.button) Art.drawButton(ctx, { x: L.button.x, y: L.button.y, pressed: W.buttonPressed });
     if (L.lift) Art.drawLift(ctx, { x: L.lift.x, y: W.liftY, active: W.liftActive || W.plateLift });
     if (L.gate) Art.drawGate(ctx, { x: L.gate.x, y: L.gate.y, open: W.gateOpen });
-    if (W.cr) Art.drawCrusher(ctx, { x: L.crusher.x, w: L.crusher.w, top: CR_TOP, bottom: W.cr.bottom, hold: crusherHold(W.cr), warn: crusherWarn(W.cr), cue: cue || 'none' });
+    if (W.cr) {
+      var cd = L.crusher;
+      Art.drawCrusher(ctx, { x: cd.x, w: cd.w, top: CR_TOP, bottom: W.cr.bottom, hold: crusherHold(W.cr), warn: crusherWarn(W.cr),
+        cue: cue || 'none', lx: cd.lx, ly: W.cr.bottom - cd.lyOff, keySide: cd.keySide });
+    }
     Art.drawGoal(ctx, { x: L.goal.x, y: L.goal.y });
   }
   function hudState(phase) {
     var lv = S.level;
     return { level: lv, levelCount: LEVEL_COUNT, gen: S.gen, maxGen: MAX_GEN, phase: phase,
       hookUnlocked: hookUnlocked(lv), hookLeft: S.hookLeft, hookMax: HOOK_MAX,
-      whistleUnlocked: whistleUnlocked(lv), aiming: S.aiming, muted: S.muted,
+      whistleUnlocked: whistleUnlocked(lv), aiming: S.aiming,
       timeLeft: timeLeftF() / 60, timeMax: REC_MAX / 60 };
   }
   function routeSegments() {
@@ -788,13 +828,19 @@
       var ai = aimInfo();
       Art.drawAim(ctx, { px: ai.px, py: ai.py, gx: ai.gx, gy: ai.gy, ax: ai.ax, ay: ai.ay, charge: S.charge });
     }
-    var ts = tDrawState();
+    var ts = S.paused ? null : tDrawState();   // 暫停選單打開時教學泡泡暫藏
     if (ts) Art.drawTutorial(ctx, ts);
     Art.drawHud(ctx, hudState(S.phase));
     if (S.banner >= 0 && S.phase !== 'win' && S.phase !== 'lose') {
       var BL = LEVELS[S.level];
-      Art.drawLevelBanner(ctx, { level: S.level, levelCount: LEVEL_COUNT, title: BL.title, newThing: BL.newThing, t: Math.min(1, S.banner / BANNER_T) });
+      Art.drawLevelBanner(ctx, { x: BL.banner[0], y: BL.banner[1], level: S.level, levelCount: LEVEL_COUNT, title: BL.title, newThing: BL.newThing, t: Math.min(1, S.banner / BANNER_T) });
     }
+    if (S.paused) Art.drawPauseMenu(ctx, { sel: S.pauseSel });
+  }
+  function drawSoundIconFor(ctx) {
+    if (window.PVDX && PVDX.on) return;   // 觸控模式不畫
+    var pos = (S.screen === 'play' && !S.paused) ? SND_ICON_PLAY : SND_ICON_MENU;
+    Art.drawSoundIcon(ctx, { x: pos.x, y: pos.y, muted: S.muted });
   }
   function drawReplay(ctx) {
     var R = S.replay, W = R.W;
@@ -825,33 +871,43 @@
   var T_PRE = { die: 'move', head: 'die', hookFire: 'hookAim', whistle: 'button' };
   T_MAIN.concat(T_COND).forEach(function (id) { T.st[id] = { done: false, skipped: false, live: false, count: 0, firstMs: null }; });
 
-  function aPlayerHead() { var P = S.P; return P ? { x: P.x + PW / 2, y: P.y - 6 } : null; }
-  function aGhostHead(off) { return function () { var g = S.ghost ? ghostRec() : null; return g ? { x: g.x + PW / 2, y: g.y - off } : null; }; }
-  function aPlate(key) { return function () { var p = S.W && S.W.L[key]; return p ? { x: p.x + 40, y: p.y - 6 } : null; }; }
-  function aCrLight() { var W = S.W; return (W && W.cr) ? { x: W.L.crusher.x + W.L.crusher.w / 2, y: W.cr.bottom - 80 } : null; }
+  // 錨點: { x, y, tail, place(可省略) }; place 省略時, 上方放不下(泡泡頂 < y 80)就改下方
+  function aPlayerHead() { var P = S.P; return P ? { x: P.x + PW / 2, y: P.y - 4, tail: 16 } : null; }
+  function aGhostHead(tail) { return function () { var g = S.ghost ? ghostRec() : null; return g ? { x: g.x + PW / 2, y: g.y - 4, tail: tail } : null; }; }
+  function aPlate(key) { return function () { var p = S.W && S.W.L[key]; return p ? { x: p.x + BTN_W / 2, y: p.y, tail: 48 } : null; }; }
+  function aCrLight() {
+    var W = S.W; if (!(W && W.cr)) return null;
+    var cd = W.L.crusher, ly = W.cr.bottom - cd.lyOff;
+    if (S.level === 7) return { x: cd.lx, y: ly, tail: 176 - ly, place: 'below' };   // 泡泡頂緣固定 y 176
+    return { x: cd.lx, y: ly, tail: 16, place: 'above' };
+  }
+  function aSeesawLand() { var s = S.W.L.seesaws[0]; return { x: s.x + SS_LAND_W / 2, y: s.y, tail: 48 }; }
+  function aSeesawLaunch() { var s = S.W.L.seesaws[0]; return { x: s.x + SS_LAUNCH_X + SS_LAND_W / 2, y: s.y, tail: 48 }; }
   var TD = {
     move: { text: '走、跳', keys: ['left', 'right', 'jump'], anchor: aPlayerHead },
-    die: { text: '到不了旗子? 先死一次', keys: [], anchor: function () { return { x: 660, y: 1200 }; },
-      mark: function () { var g = S.W.L.goal; return { x: g.x, y: g.y, w: 48, h: 80 }; } },
-    head: { text: '跳到他頭上', keys: [], anchor: aGhostHead(10) },
+    die: { text: '到不了旗子? 先死一次', keys: [], anchor: function () { return { x: 1150, y: 600, tail: 16 }; },
+      mark: function () { var g = S.W.L.goal; return { x: g.x - 4, y: g.y - 4, w: GOAL_W + 8, h: GOAL_H + 8 }; } },
+    head: { text: '跳到他頭上', keys: [], anchor: aGhostHead(16) },
     hookAim: { text: '他跳起時 按 Z', keys: ['Z'], anchor: aGhostHead(50) },
-    hookFire: { text: '蓄滿 再按 Z', keys: ['Z'], below: true,
-      anchor: function () { var P = S.P; return P ? { x: P.x + PW / 2, y: P.y + PH + 4 } : null; } },
+    hookFire: { text: '蓄滿 再按 Z', keys: ['Z'],
+      anchor: function () { var P = S.P; return P ? { x: P.x + PW / 2, y: P.y + 32, tail: 16, place: 'below' } : null; } },
     gate: { text: '有人踩著, 門就開', keys: [], anchor: aPlate('plateGate'),
-      mark: function () { var g = S.W.L.gate; return { x: g.x, y: g.y, w: 24, h: 220 }; } },
+      mark: function () { var g = S.W.L.gate; return { x: g.x - 6, y: g.y - 6, w: GATE_W + 12, h: GATE_H + 12 }; } },
     lift: { text: '踩住開關, 電梯會升', keys: [], anchor: aPlate('plateLift'),
-      mark: function () { var L = S.W.L; return { x: L.lift.x, y: S.W.liftY, w: 120, h: 24 }; } },
+      mark: function () { var L = S.W.L; return { x: L.lift.x - 6, y: S.W.liftY - 6, w: LIFT_W + 12, h: 24 }; } },
     seesaw: { text: '跳到這頭, 另一頭彈起', keys: [],
-      anchor: function () { var s = S.W.L.seesaws[0]; return { x: s.x + 40, y: s.y - 6 }; },
-      fxAnchor: function () { var s = S.W.L.seesaws[0]; return { x: s.x + 160, y: s.y - 6 }; },
-      mark: function () { var s = S.W.L.seesaws[0]; return { x: s.x + 120, y: s.y - 8, w: 80, h: 20 }; } },
+      anchor: aSeesawLand, fxAnchor: aSeesawLaunch,
+      mark: function () { var s = S.W.L.seesaws[0]; return { x: s.x + SS_LAUNCH_X - 6, y: s.y - 6, w: SS_LAND_W + 12, h: 18 }; } },
     button: { text: '踩按鈕, 壓板升起', keys: [], anchor: aPlate('button'),
-      mark: function () { var W = S.W; return { x: W.L.crusher.x, y: W.cr.bottom - 30, w: W.L.crusher.w, h: 30 }; } },
-    whistle: { text: '按 C, 他回來再踩', keys: ['C'], anchor: aPlate('button') },
-    chain: { text: '綠燈時 再按 C', keys: ['C'], anchor: aCrLight },
-    slow: { text: '他走太慢, R 重來', keys: ['R'], anchor: aCrLight },
-    stuck: { text: '卡住了? R 整關重來', keys: ['R'], anchor: aPlayerHead }
+      mark: function () { var W = S.W, c = W.L.crusher; return { x: c.x - 6, y: W.cr.bottom - 30, w: c.w + 12, h: 36 }; } },
+    whistle: { text: '吹哨: 他回來再踩', keys: ['space'], anchor: aPlate('button') },
+    chain: { text: '綠燈時 再吹哨', keys: ['space'], anchor: aCrLight },
+    slow: { text: '他走太慢, 整關重來', keys: ['esc'], anchor: aCrLight, fxAnchor: aPlayerHead },
+    stuck: { text: '卡住了? 整關重來', keys: ['esc'], anchor: aPlayerHead }
   };
+  var T_AUTO = { gate: 1, lift: 1, seesaw: 1, button: 1 };   // 泡泡出現前就做到 → auto 完成
+  // 主線階段的出現時機: 開場橫幅消失後 0.3 秒(沒橫幅: 出生後 0.5 秒)
+  function tIntro() { return S.banner < 0 && S.quietF >= 18 && !!S.rec && S.rec.length >= 30; }
 
   function tOpen(id) { var s = T.st[id]; return !s.done && !s.skipped; }
   function tLevelOk(id) {
@@ -862,15 +918,15 @@
   function tElig(id) {
     var st = T.st[id], L = S.level, rl = S.rec ? S.rec.length : 0, W = S.W;
     switch (id) {
-      case 'move': return L === 1 && S.gen === 1 && rl >= 30;
+      case 'move': return L === 1 && S.gen === 1 && tIntro();
       case 'die': return L === 1 && S.gen === 1 && T.st.move.done;
       case 'head': return L === 1 && T.st.die.done && !!S.ghost;
       case 'hookAim': return L >= 2 && !!S.ghost && S.hookLeft > 0;
       case 'hookFire': return S.aiming && T.st.hookAim.done;
-      case 'gate': return L === 3 && (st.live || (S.gen === 1 && rl >= 30));
-      case 'lift': return L === 4 && (st.live || (S.gen === 1 && rl >= 30));
-      case 'seesaw': return L === 5 && (st.live || (S.gen === 1 && rl >= 30));
-      case 'button': return L === 6 && (st.live || (S.gen === 1 && rl >= 18));
+      case 'gate': return L === 3 && (st.live || tIntro());
+      case 'lift': return L === 4 && (st.live || tIntro());
+      case 'seesaw': return L === 5 && (st.live || tIntro());
+      case 'button': return L === 6 && (st.live || tIntro());
       case 'whistle': return L === 6 && T.st.button.done && !!S.ghost && S.tb !== null;
       case 'chain': return (L === 6 || L === 7) && T.chainArmed && !!S.ghost && !!(W && W.cr);
       case 'slow': return (L === 6 || L === 7) && !!(W && W.cr) && !!S.ghost && S.tb !== null && S.tb >= W.cr.riseF && (S.lateWhistle || S.gen === 3);
@@ -879,7 +935,8 @@
     return false;
   }
   function tWant() {
-    if (S.screen !== 'play' || S.phase !== 'play' || !S.P || S.P.dead || T.fx) return null;
+    if (S.screen !== 'play' || S.phase !== 'play' || !S.P || S.P.dead || T.fx || S.paused) return null;
+    if (S.banner >= 0) return null;   // 開場橫幅還在: 任何泡泡都等它消失
     if (S.aiming) return (tOpen('hookFire') && tElig('hookFire') && T.block <= 0) ? 'hookFire' : null;
     var i, id;
     for (i = 0; i < T_COND.length; i++) { id = T_COND[i]; if (tOpen(id) && tElig(id)) return id; }
@@ -921,7 +978,7 @@
       snd('tutorialDone');
     }
   }
-  // 遊戲事件 → 教學階段完成(條件式 R 只有泡泡正在顯示時才算)
+  // 遊戲事件 → 教學階段完成(條件式 'R' = 暫停選單選「重來」, 只有泡泡正在顯示時才算)
   function tEvent(ev) {
     if (S.screen !== 'play') return;
     if (ev === 'R') {
@@ -932,7 +989,7 @@
     var pre = T_PRE[ev];
     if (pre && !T.st[pre].done) return;
     if (ev === 'hookFire' && !T.st.hookAim.done) return;
-    tComplete(ev, T.cur !== ev);
+    tComplete(ev, T.cur !== ev, !!T_AUTO[ev] && T.st[ev].count === 0);
   }
   function tOnWhistle(cue) {
     var W = S.W;
@@ -980,7 +1037,7 @@
     try {
       var f = useFx ? def.fxAnchor : def.anchor;
       return f ? f() : null;
-    } catch (e) { return null; }
+    } catch (e) { console.error(e); return null; }
   }
   function tDrawState() {
     var id, d, a, fx = null, done = 0, pop = 1, pressed;
@@ -998,20 +1055,21 @@
     } else return null;
     if (!a) return null;
     var mark = null;
-    if (d.mark) { try { mark = d.mark(); } catch (e) { mark = null; } }
-    var place = (a.y - 100 < 110) ? 'below' : 'above';
-    if (d.below) place = 'below';   // 射出階段固定在腳下(頭上有 drawAim 的「Z 射出 / X 取消」)
-    return { stage: id, text: d.text, keys: d.keys.slice(), pressed: pressed, ax: a.x, ay: a.y, place: place, pop: pop, done: done, mark: mark };
+    if (d.mark) { try { mark = d.mark(); } catch (e) { console.error(e); mark = null; } }
+    var place = a.place || ((a.y - a.tail - 52 < 80) ? 'below' : 'above');   // 上方放不下(壓到 HUD)就改下方
+    return { stage: id, text: d.text, keys: d.keys.slice(), pressed: pressed, ax: a.x, ay: a.y, place: place, tail: a.tail,
+      pop: pop, finishing: !!fx, done: fx ? done : 0, mark: mark };
   }
 
   function render(ctx) {
     ctx.clearRect(0, 0, CW, CH);
-    if (S.screen === 'title') Art.drawTitle(ctx, { t: S.titleT, muted: S.muted });
+    if (S.screen === 'title') Art.drawTitle(ctx, { t: S.titleT });
     else if (S.screen === 'unlock') Art.drawUnlockPage(ctx, { ability: S.unlockAbility });
     else if (S.screen === 'ending') Art.drawEnding(ctx, {});
     else if (S.screen === 'play') {
       if (S.phase === 'win' && S.replay) drawReplay(ctx); else drawPlay(ctx);
     }
+    drawSoundIconFor(ctx);
   }
 
   // ===== 輸入(只有鍵盤) =====
@@ -1032,10 +1090,13 @@
         if (lv === 1 && !S.shown.hook) { S.shown.hook = true; showUnlock('hook'); }
         else if (lv === 5 && !S.shown.whistle) { S.shown.whistle = true; showUnlock('whistle'); }
         else if (lv === LEVEL_COUNT) {
+          snd('uiPage');
           setScreen('ending'); music('ending');
           emit('game_complete', { totalTime: Math.round(nowMs() - t0) });
-        } else { S.level++; startLevel('first'); }
+          download('complete');   // 批次最尾端
+        } else { snd('uiPage'); S.level++; startLevel('first'); }
       } else if (S.phase === 'lose') {
+        snd('uiPage');
         startLevel('retry');
       }
     }
@@ -1057,19 +1118,32 @@
     } catch (e) { console.error(e); }
     emit('mute', { muted: S.muted });
   }
-  var GAME_KEYS = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, Space: 1, KeyZ: 1, KeyX: 1, KeyC: 1, KeyR: 1, KeyM: 1 };
+  var GAME_KEYS = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, Space: 1, KeyZ: 1, KeyX: 1, KeyM: 1, Escape: 1 };
   function refreshJump() { keys.jump = jumpDown.ArrowUp; if (keys.jump) cmd.jump = true; }
   function onKeyDown(e) {
-    if (e.repeat) { if (GAME_KEYS[e.code]) e.preventDefault(); return; }
     if (GAME_KEYS[e.code]) e.preventDefault();
+    if (e.repeat) return;
     if (!firstInput) {
       firstInput = true;
       try { if (window.Sound && Sound.init) Sound.init(); } catch (er) { console.error(er); }
     }
     var c = e.code;
     if (c === 'KeyM') { toggleMute(); return; }
-    var playing = S.screen === 'play' && S.phase !== 'win' && S.phase !== 'lose';
-    if (c === 'Space') { onSpace(); return; }
+    // --- 暫停選單: 只有 Esc / ↑ ↓ / 空白 / M 有作用 ---
+    if (S.paused) {
+      if (c === 'Escape') closePause('resume');
+      else if (c === 'ArrowUp') { if (S.pauseSel > 0) { S.pauseSel = 0; snd('menuMove'); } }
+      else if (c === 'ArrowDown') { if (S.pauseSel < 1) { S.pauseSel = 1; snd('menuMove'); } }
+      else if (c === 'Space') closePause(S.pauseSel === 0 ? 'resume' : 'restart');
+      return;
+    }
+    if (c === 'Escape') { openPause(); return; }   // 只有遊玩中(含瞄準)有效
+    if (c === 'Space') {
+      // 遊玩中: 吹哨; 其他畫面: 確認 / 繼續
+      if (S.screen === 'play' && S.phase === 'play') cmd.c = true;
+      else onSpace();
+      return;
+    }
     if (c === 'ArrowUp') { if (S.screen === 'play' && S.phase === 'play' && !S.aiming) { jumpDown.ArrowUp = true; refreshJump(); tKey('up'); } return; }
     if (c === 'ArrowLeft') {
       keys.left = true; tKey('left');
@@ -1080,10 +1154,8 @@
       return;
     }
     if (S.screen !== 'play') return;
-    if (c === 'KeyR') { if (playing) cmd.r = true; }
-    else if (c === 'KeyZ') { if (S.phase === 'play') cmd.z = true; }
+    if (c === 'KeyZ') { if (S.phase === 'play') cmd.z = true; }
     else if (c === 'KeyX') { if (S.phase === 'play') cmd.x = true; }
-    else if (c === 'KeyC') { if (S.phase === 'play') cmd.c = true; }
   }
   function onKeyUp(e) {
     if (GAME_KEYS[e.code]) e.preventDefault();
@@ -1097,7 +1169,9 @@
   // ===== 啟動 =====
   var canvas, ctx;
   function resize() {
-    var s = Math.min(window.innerWidth / CW, window.innerHeight / CH);
+    // 以容器(視窗 / iframe)寬高算最大等比尺寸, 置中靠 body 的 flex; 多出的留黑邊
+    var cw = window.innerWidth || document.documentElement.clientWidth, ch = window.innerHeight || document.documentElement.clientHeight;
+    var s = Math.min(cw / CW, ch / CH);
     if (!(s > 0)) s = 1;
     var dpr = window.devicePixelRatio || 1;
     canvas.style.width = Math.floor(CW * s) + 'px';
@@ -1127,6 +1201,7 @@
     ctx = canvas.getContext('2d');
     resize();
     window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', resize);
     window.addEventListener('keydown', function (e) { onKeyDown(e); });
     window.addEventListener('keyup', function (e) { onKeyUp(e); });
     window.addEventListener('blur', onBlur);
