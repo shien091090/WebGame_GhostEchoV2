@@ -1,6 +1,9 @@
-# 幽影接力 音效說明(polish-7)
+# 幽影接力 音效說明(polish-8)
 
-相對 polish-6:
+相對 polish-7: **音效、音樂完全不變**(spec 打磨第 8 輪「音效清單本輪不變」「音效、音樂不變」)。36 個事件名、4 首曲名、opts、素材、音量都照舊, RD 不用改接法。唯一的文字修正:
+- `uiPage` 的呼叫時機補上「過關回放後按空白鍵(下一關)、失敗畫面按空白鍵(再試一次)」, 對齊 spec 音效清單的 uiPage 一列(上一版 sound.md 誤寫成不叫)。素材、音量不變; RD 若上一版沒接這兩處, 照 spec 補上即可
+
+(polish-7 相對 polish-6:)
 - **新增 3 個事件, 需要 RD 接**: `pauseOpen`(按 Esc 打開暫停選單)、`pauseClose`(選「繼續」或再按 Esc 關閉)、`menuMove`(選單 ↑ / ↓ 真的移動了選擇)。interface.json 的 36 個事件、4 首曲名與本表一一對應
 - `pauseOpen` 會**自動**把背景音樂降到 30% 並悶化、暫停蓄力聲; `pauseClose` 自動恢復(瞄準中打開的, 關掉後回到瞄準的悶化、蓄力聲從原值接著響)。RD 不用另外處理音樂
 - `restart` 改成暫停選單選「重來」時呼叫(R 鍵已移除); `whistle` 改成空白鍵觸發。素材、音量不變
@@ -71,7 +74,7 @@
 | `levelFail` | levelFail | 進入失敗畫面那一刻(第 3 代死亡演出結束) | — | sfx_level_fail.wav | 0.50 | 否 |
 | `restart` | restart(改) | 暫停選單選「重來」那一刻。**只叫 restart, 不要再叫 pauseClose**; 會自動解除暫停 / 瞄準的悶化、停掉保留的蓄力聲 | — | sfx_restart.wav | 0.45 | 否 |
 | `unlock` | unlock | 解鎖頁出現那一刻 | — | sfx_unlock.wav | 0.60 | 否 |
-| `uiPage` | uiPage(改) | 開始畫面按空白鍵開始、解鎖頁按空白鍵繼續、全破畫面按空白鍵回第 1 關(過關回放、失敗畫面按空白鍵不在 spec 清單內, 不叫) | — | sfx_ui_page.wav | 0.40 | 否 |
+| `uiPage` | uiPage | 開始畫面按空白鍵開始、解鎖頁按空白鍵繼續、全破畫面按空白鍵回第 1 關、過關回放中按空白鍵進下一關、失敗畫面按空白鍵再試一次(polish-8 補正, 對齊 spec)。接著出生的第 1 代照叫 spawn | — | sfx_ui_page.wav | 0.40 | 否 |
 | `tutorialShow` | tutorialShow(新) | 教學泡泡出現那一刻(pop 從 0 開始那一幀), 每個階段一次; 條件式階段再次出現也叫 | — | sfx_tutorial_show.wav(約 330→490 Hz 短「啵」, 60 毫秒, 加了衰減) | 0.30 | 否 |
 | `tutorialKey` | tutorialKey(新) | 第 1 階段某個鍵帽第一次打勾那一幀(pressed 由 false 變 true), 每個鍵一次 | `index`: 0 / 1 / 2 = **這是第幾個打勾的鍵**(依打勾先後, 不是哪一個鍵); 音高 Do → Mi → Sol 依序升高。可省: 省略時自動依呼叫次數 0、1、2 往上, `tutorialShow` 時歸零 | sfx_tutorial_key1 / 2 / 3.wav(金幣「叮」, 960 / 1225 / 1425 Hz) | 0.32 | 否 |
 | `tutorialDone` | tutorialDone(新) | 教學階段完成那一刻(done 從 0 開始那一幀) | — | sfx_tutorial_done.wav(上行琶音)+ 0.12 秒後 sfx_tutorial_sparkle.wav(高音「叮叮」) | 0.28 / 0.18 | 否 |
@@ -153,6 +156,7 @@ Sound.play('restart');             // 只叫這個, 不叫 pauseClose; 接著第
 | 壓板: crusherWarn 之後 0.3 秒 crusherSlam | crusherWarn 只有 0.28 秒, 不會跟落下聲重疊 |
 | 碰旗過關: levelClear + playMusic('replay') | 同一幀叫即可, 音樂淡入 0.4 秒, 號角會蓋在前面 |
 | 失敗: death → 0.6 秒後 levelFail | 各自照叫 |
+| 回放 / 失敗畫面按空白鍵: uiPage + 下一關(或重試)第 1 代的 spawn 同一幀 | 照叫; uiPage 是 0.06 秒的短「嗒」、音量 0.40, spawn 的上揚在後面聽得出來 |
 | 同一幀多個開關被壓 / 放開 | plateOn / plateOff 0.06 秒內只響一次 |
 | 剩 1 秒的 timeTick 之後 1 秒超時: death | 各自照叫; timeTick 只有 64 毫秒, 不會跟 death 重疊 |
 | timeTick 與其他事件同時(例: 剛好壓開關) | 照叫; timeTick 是高音短滴、音量 0.25, 不蓋掉機關聲 |
@@ -183,4 +187,5 @@ Sound.play('restart');             // 只叫這個, 不叫 pauseClose; 接著第
 - **polish-5 的教學三聲也沿用同一套**: 都取自同一個 8-bit 音效包, 響度流程與上一版相同, 起音全部在 1 毫秒內(量「到峰值一成」為 0.0 毫秒), 泡泡彈出時立刻有聲; 刻意避開已用過的檔(aimFull 的金幣、uiPage 的選單音、spawn / unlock 的能力音), 讓教學音和遊戲事件聽得出不同。tutorialKey 三段音高用同一個「叮」重取樣出 Do / Mi / Sol(大三和弦), 集點感來自音高往上; tutorialDone 選 0.25 秒的短琶音, 比 levelClear 的 0.51 秒號角短一半、音量也低, 符合 spec「比 levelClear 小一號」
 - **polish-7 的暫停選單三聲也沿用同一套**(沿用任務保留同一套聲音): 取自同一個 8-bit 音效包的 Pause Sounds 與 Menu Sounds, 響度流程與上一版相同, 起音都在 1 毫秒內(量「到峰值一成」0.1 毫秒), 按 Esc 立刻有聲。pauseOpen / pauseClose 用同一對開 / 關(往上掃 / 往下掃), 刻意避開瞄準用過的那一對(aimStart / hookCancel), 讓「選單」和「時間被按住」聽得出不同; menuMove 避開 uiPage、tutorialShow 用過的兩支, 挑音高最低(約 660 Hz)、最短的一支, 原檔是平坦方波, 比照 timeTick 加短衰減讓「嗒」更輕
 - **壓低音樂的原因變多時用原因表、掛勾放最前面**(經驗「規格要慢動作時背景音樂降一半…」的續條): 悶化改成「瞄準 / 暫停」兩個原因, 任一在就悶化; 掛勾放在 play 最前面, 不受靜音與同名限頻影響; 換曲時保留 0.15 秒內剛設的原因。冒煙測試逐一驗了: 瞄準中開關暫停、靜音中開關暫停、同一幀連開連關、暫停中選重來、暫停後同一幀換曲
+- **polish-8 沿用任務**: spec 本輪聲音不變, 照「沿用任務保留上一版素材與音量」原則, 43 個檔與 sound.js 的資料、音量、邏輯全部不動(只在檔頭加版本註記), 冒煙測試重跑一次確認 36 個事件與 4 首曲名都對得上 interface.json
 - spec 要求「title 不要有點毛」: 換成風格欄標 Bright / Humorous / Uplifting 的曲子, 沒有選 Mysterious / Dark 的

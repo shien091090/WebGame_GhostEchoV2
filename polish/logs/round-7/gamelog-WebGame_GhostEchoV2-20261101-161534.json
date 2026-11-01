@@ -1,0 +1,125 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-7",
+ "sessionStart": "2026-11-01T16:11:57+08:00",
+ "downloadedAt": "2026-11-01T16:15:34+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "level_start",
+   "t": 187807,
+   "level": 5,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 187807,
+   "level": 5,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "tutorial_done",
+   "t": 189441,
+   "level": 5,
+   "stage": "seesaw",
+   "attempt": 1,
+   "gen": 1,
+   "showTime": 0,
+   "auto": true,
+   "x": 193,
+   "y": 592
+  },
+  {
+   "type": "gen_end",
+   "t": 196121,
+   "level": 5,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "pit",
+   "x": 860,
+   "y": 730,
+   "duration": 500,
+   "minFeetY": 536,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 51.7
+  },
+  {
+   "type": "gen_start",
+   "t": 196718,
+   "level": 5,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "seesaw_launch",
+   "t": 198357,
+   "level": 5,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "gen_end",
+   "t": 204135,
+   "level": 5,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "pit",
+   "x": 950,
+   "y": 738,
+   "duration": 446,
+   "minFeetY": 196,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 52.6
+  },
+  {
+   "type": "gen_start",
+   "t": 204739,
+   "level": 5,
+   "attempt": 1,
+   "gen": 3
+  },
+  {
+   "type": "hook",
+   "t": 216350,
+   "level": 5,
+   "attempt": 1,
+   "gen": 3,
+   "result": "launch",
+   "ghostAir": true,
+   "charge": 1,
+   "x": 460,
+   "y": 252
+  },
+  {
+   "type": "gen_end",
+   "t": 217955,
+   "level": 5,
+   "attempt": 1,
+   "gen": 3,
+   "cause": "win",
+   "x": 44,
+   "y": 122,
+   "duration": 726,
+   "minFeetY": 98,
+   "hooksUsed": 1,
+   "whistles": 0,
+   "timeLeft": 47.9
+  },
+  {
+   "type": "level_win",
+   "t": 217955,
+   "level": 5,
+   "attempt": 1,
+   "gen": 3,
+   "attemptTime": 30148,
+   "levelTime": 30148,
+   "fails": 0,
+   "restarts": 0,
+   "pauseTime": 0
+  }
+ ]
+}

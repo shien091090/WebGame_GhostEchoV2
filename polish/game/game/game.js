@@ -6,21 +6,23 @@
   var DT = 1 / 60;
   var G = 1200, JUMP_V = 450, WALK = 200;
   var PW = 20, PH = 28;
-  var SPAWN = { x: 40, y: 592 };
+  var SPAWN = { x: 30, y: 428 };
   var HOOK_RANGE = 110, HOOK_AIR = 850, HOOK_GND = 400, CHARGE_T = 1;
   var LAUNCH_T = 0.3, ROPE_T = 0.15, LIFT_SPD = 100, SEESAW_V = 950, SEESAW_T = 0.3;
   var DEATH_T = 0.6, REC_MAX = 3600, ROUTE_N = 300, RING_T = 0.4;
   var LEVEL_COUNT = 7, MAX_GEN = 3, HOOK_MAX = 2;
-  var CR_WARN_F = 18, CR_SPD = 300, CR_TOP = 70;
-  var CEILING = 70, TIME_WARN_F = 600, TICK_S = 5;
-  var GROUND_Y = 620, GROUND_H = 100;
-  var LIFT_TOP = 410, LIFT_W = 60, GATE_W = 12, GATE_H = 110, BTN_W = 40, BTN_H = 6, GOAL_W = 24, GOAL_H = 40, PLT_H = 12, SPIKE_H = 12;
+  var CR_WARN_F = 18, CR_SPD = 300, CR_TOP = 32;
+  var CEILING = 32, TIME_WARN_F = 600, TICK_S = 5;
+  var GROUND_Y = 456, GROUND_H = 24;
+  var LIFT_TOP = 241, LIFT_W = 60, GATE_W = 12, GATE_H = 114, BTN_W = 40, BTN_H = 6, GOAL_W = 24, GOAL_H = 40, PLT_H = 12, SPIKE_H = 12;
   var SS_W = 100, SS_LAND_W = 40, SS_LAUNCH_X = 60;
   var CW = (window.Art && Art.canvas && Art.canvas.width) || 1280;
   var CH = (window.Art && Art.canvas && Art.canvas.height) || 720;
-  var SND_ICON_PLAY = { x: 1228, y: 80 }, SND_ICON_MENU = { x: 1228, y: 12 };
+  // 世界 853⅓ × 480, 放大 1.5 倍; 畫面座標 = 世界座標 × ZOOM
+  var ZOOM = 1.5, WW = 1280 / 1.5, WH = 480;
+  var SND_ICON_PLAY = { x: 1228, y: 56 }, SND_ICON_MENU = { x: 1228, y: 12 };
 
-  var BUILD = 'polish-7';
+  var BUILD = 'polish-8';
   var BANNER_T = 1.5, TUT_FX_T = 0.8, TUT_GAP = 0.4, TUT_POP_T = 0.25;
   // (本輪沒有需要的佔位圖形)
 
@@ -29,50 +31,54 @@
   var LEVELS = [
     null,
     { // 1
-      title: '踩著上去', hint: '一個人到不了, 先死一次', newThing: 'relay', banner: [400, 100],
-      platforms: [P_(440, 515, 600), P_(0, 410, 680)], spikes: [], walls: [], groundW: 1000,
-      goal: { x: 20, y: 370 }
+      title: '踩著上去', hint: '一個人到不了, 先死一次', newThing: 'relay', banner: [60, 70],
+      platforms: [P_(100, 351, 320), P_(280, 246, 574)], spikes: [], walls: [],
+      grounds: [{ x: 0, w: 400 }, { x: 480, w: 374 }],
+      goal: { x: 780, y: 206 }
     },
     { // 2
-      title: '一鉤飛天', hint: '鉤住跳起來的幽靈', newThing: 'hook', banner: [700, 90],
-      platforms: [P_(320, 410, 680), P_(0, 200, 640)], spikes: [{ x: 940, y: 398, w: 60 }], walls: [], groundW: 900,
-      goal: { x: 20, y: 160 }
+      title: '一鉤飛天', hint: '鉤住跳起來的幽靈', newThing: 'hook', banner: [60, 70],
+      platforms: [P_(200, 241, 520), P_(440, 146, 414)], spikes: [{ x: 0, y: 444, w: 16 }], walls: [],
+      grounds: [{ x: 0, w: 560 }],
+      goal: { x: 780, y: 106 }
     },
     { // 3
-      title: '守門的人', hint: '有人踩住, 同色的門才會開', newThing: 'gate', banner: [780, 230],
-      platforms: [P_(0, 410, 600), P_(160, 200, 640)], spikes: [{ x: 0, y: 398, w: 30 }],
-      walls: [{ x: 630, y: 212, w: 12, h: 158 }], groundW: 900,
-      plateGate: { x: 440, y: 404 }, gate: { x: 630, y: 90, delay: 0.6 },
-      goal: { x: 740, y: 160 }
+      title: '守門的人', hint: '有人踩住, 同色的門才會開', newThing: 'gate', banner: [60, 70],
+      platforms: [P_(0, 241, 560), P_(160, 146, 694)], spikes: [{ x: 0, y: 444, w: 16 }, { x: 0, y: 229, w: 20 }],
+      walls: [{ x: 600, y: 158, w: 12, h: 322 }], grounds: [{ x: 0, w: 560 }],
+      plateGate: { x: 50, y: 235 }, gate: { x: 600, y: 32, delay: 0.6 },
+      goal: { x: 780, y: 106 }
     },
     { // 4
-      title: '升降接力', hint: '電梯也要有人踩住', newThing: 'lift', banner: [780, 230],
-      platforms: [P_(0, 410, 592), P_(300, 200, 500)], spikes: [{ x: 0, y: 398, w: 30 }],
-      walls: [{ x: 640, y: 212, w: 12, h: 158 }], groundW: 880,
-      plateLift: { x: 200, y: 614 }, lift: { x: 592 },
-      plateGate: { x: 50, y: 404 }, gate: { x: 640, y: 90, delay: 0.3 },
-      goal: { x: 740, y: 160 }
+      title: '升降接力', hint: '電梯也要有人踩住', newThing: 'lift', banner: [60, 70],
+      platforms: [P_(0, 241, 500), P_(160, 146, 694)], spikes: [{ x: 0, y: 444, w: 16 }, { x: 0, y: 229, w: 20 }],
+      walls: [{ x: 600, y: 158, w: 12, h: 322 }], grounds: [{ x: 0, w: 560 }],
+      plateLift: { x: 70, y: 450 }, lift: { x: 500 },
+      plateGate: { x: 50, y: 235 }, gate: { x: 600, y: 32, delay: 0.3 },
+      goal: { x: 780, y: 106 }
     },
     { // 5
-      title: '翹翹板', hint: '落在板子一頭, 另一頭會彈起', newThing: 'seesaw', banner: [500, 110],
-      platforms: [P_(250, 280, 610), P_(0, 150, 420)], spikes: [], walls: [], groundW: 800,
-      seesaws: [{ x: 200, y: 614 }],
-      goal: { x: 20, y: 110 }
+      title: '翹翹板', hint: '落在板子一頭, 另一頭會彈起', newThing: 'seesaw', banner: [380, 70],
+      platforms: [P_(160, 146, 280), P_(630, 146, 224)], spikes: [{ x: 0, y: 444, w: 16 }], walls: [],
+      grounds: [{ x: 0, w: 400 }],
+      seesaws: [{ x: 140, y: 450 }],
+      goal: { x: 780, y: 106 }
     },
     { // 6
-      title: '叫他回來', hint: '吹哨, 讓他再踩一次按鈕', newThing: 'button', banner: [640, 200],
-      platforms: [], spikes: [{ x: 0, y: 608, w: 24 }], walls: [], groundW: 1280,
-      button: { x: 62, y: 614 },
-      crusher: { x: 160, w: 360, up: 575, down: 620, riseF: 102, lx: 340, lyOff: 24, keySide: 'right' },
-      goal: { x: 526, y: 580 }
+      title: '叫他回來', hint: '吹哨, 讓他再踩一次按鈕', newThing: 'button', banner: [400, 80],
+      platforms: [], spikes: [{ x: 0, y: 444, w: 16 }], walls: [], grounds: [{ x: 0, w: 854 }],
+      button: { x: 52, y: 450 },
+      crusher: { x: 250, w: 350, up: 411, down: 456, riseF: 102, lx: 425, lyOff: 16, keySide: 'right' },
+      goal: { x: 780, y: 416 }
     },
     { // 7
-      title: '撐住壓板', hint: '這次壓板在最上層', newThing: 'final', banner: [780, 330],
-      platforms: [P_(230, 280, 470), P_(0, 150, 350, true), P_(350, 150, 450)], spikes: [], walls: [], groundW: 640,
-      seesaws: [{ x: 170, y: 614 }],
-      button: { x: 100, y: 614 },
-      crusher: { x: 70, w: 280, up: 105, down: 150, riseF: 72, lx: 310, lyOff: 20, keySide: 'left' },
-      goal: { x: 20, y: 110 }
+      title: '撐住壓板', hint: '這次壓板在最上層', newThing: 'final', banner: [700, 400],
+      platforms: [P_(180, 205, 600), P_(0, 110, 346, true), P_(346, 110, 454)], spikes: [{ x: 0, y: 444, w: 16 }], walls: [],
+      grounds: [{ x: 0, w: 460 }],
+      seesaws: [{ x: 140, y: 450 }],
+      button: { x: 70, y: 450 },
+      crusher: { x: 66, w: 280, up: 65, down: 110, riseF: 72, lx: 306, lyOff: 16, keySide: 'left' },
+      goal: { x: 16, y: 70 }
     }
   ];
 
@@ -177,7 +183,8 @@
   function newWorld(lv) {
     var L = LEVELS[lv];
     return {
-      lv: lv, L: L, ground: { x: 0, y: GROUND_Y, w: L.groundW, h: GROUND_H, solid: true },
+      lv: lv, L: L,
+      grounds: L.grounds.map(function (g) { return { x: g.x, y: GROUND_Y, w: g.w, h: GROUND_H, solid: true }; }),
       liftY: GROUND_Y, liftDir: 0, liftActive: false,
       gateOpen: false, gateT: 0,
       seesaws: (L.seesaws || []).map(function (s) { return { x: s.x, y: s.y, age: -1, tilt: 0 }; }),
@@ -194,7 +201,7 @@
   }
   // 實心物(地面、牆、關著的門、實心平台); 壓板另外處理
   function solidsOf(W) {
-    var L = W.L, a = [W.ground];
+    var L = W.L, a = W.grounds.slice();
     L.platforms.forEach(function (p) { if (p.solid) a.push(p); });
     L.walls.forEach(function (w) { a.push(w); });
     if (L.gate && !W.gateOpen) a.push({ x: L.gate.x, y: L.gate.y, w: GATE_W, h: GATE_H });
@@ -555,11 +562,27 @@
     for (var rI = S.rings.length - 1; rI >= 0; rI--) { S.rings[rI].age += DT; if (S.rings[rI].age >= RING_T) S.rings.splice(rI, 1); }
 
     // --- 搭乘 ---
-    var carried = false;
+    var carried = false, noGhostLand = false;
     if (onLift) { P.y = W.liftY - PH; }
     else if (P.grounded && P.src === 'ghost' && S.ghost) {
       if (disc) { P.grounded = false; P.src = null; P.vy = 0; }
-      else if (gNewY !== null) { P.x += gDx; P.y = gNewY - PH; carried = true; }
+      else if (gNewY !== null) {
+        var oldTop13 = P.y;
+        P.x += gDx; P.y = gNewY - PH; carried = true;
+        // 規則 13a: 被帶著往上時頭頂碰到天花板或實心平台底面 → 停在那裡、離開幽靈、進入空中
+        if (P.y < oldTop13) {
+          var hitY = null;
+          if (P.y < CEILING) hitY = CEILING;
+          var solC = solidsOf(W);
+          for (var q13 = 0; q13 < solC.length; q13++) {
+            var sq = solC[q13], sb = sq.y + sq.h;
+            if (ov(P.x, P.x + PW, sq.x, sq.x + sq.w) && oldTop13 >= sb - 0.01 && P.y < sb) { if (hitY === null || sb > hitY) hitY = sb; }
+          }
+          if (hitY !== null) {
+            P.y = hitY; P.vy = 0; P.grounded = false; P.src = null; carried = false; noGhostLand = true;
+          }
+        }
+      }
     }
     if (disc && P.src === 'ghost' && P.grounded) { P.grounded = false; P.src = null; P.vy = 0; }
 
@@ -580,7 +603,7 @@
     var oldPx = P.x;
     P.x += P.vx * DT;
     if (P.x < 0) { P.x = 0; P.vx = 0; }
-    if (P.x > CW - PW) { P.x = CW - PW; P.vx = 0; }
+    if (P.x > WW - PW) { P.x = WW - PW; P.vx = 0; }
     for (var si2 = 0; si2 < sol.length; si2++) {
       var s = sol[si2];
       if (rectOv(P.x, P.y, PW, PH, s.x, s.y, s.w, s.h)) {
@@ -613,13 +636,13 @@
         var chk = (prevTop === undefined) ? top : prevTop;
         if (oldFeet <= chk + 0.01 && newFeet >= top) { if (!best || top < best.top) best = { top: top, src: src }; }
       };
-      consider(W.ground.y, W.ground.x, W.ground.x + W.ground.w, 'ground');
+      W.grounds.forEach(function (g0) { consider(g0.y, g0.x, g0.x + g0.w, 'ground'); });
       L.platforms.forEach(function (p) { consider(p.y, p.x, p.x + p.w, 'plat'); });
       if (L.lift) consider(W.liftY, L.lift.x, L.lift.x + LIFT_W, 'lift');
       L.walls.forEach(function (w) { consider(w.y, w.x, w.x + w.w, 'plat'); });
       if (L.gate && !W.gateOpen) consider(L.gate.y, L.gate.x, L.gate.x + GATE_W, 'plat');
       // 幽靈頭頂: 必須是從上方落下(上一幀腳底 ≤ 上一幀頭頂); 正被載著的角色已貼齊頭頂, 視為持續站著
-      if (S.ghost) { var gg = ghostRec(); consider(gg.y, gg.x, gg.x + PW, 'ghost', carried ? gg.y : (gOldY === null ? gg.y : gOldY)); }
+      if (S.ghost && !noGhostLand) { var gg = ghostRec(); consider(gg.y, gg.x, gg.x + PW, 'ghost', carried ? gg.y : (gOldY === null ? gg.y : gOldY)); }
       if (best) { P.y = best.top - PH; P.vy = 0; P.grounded = true; P.src = best.src; }
       else P.y = newY;
     } else {
@@ -631,7 +654,7 @@
       }
       P.y = ny;
     }
-    // 天花板: 頭頂到 y 70 停住, 往上速度歸零
+    // 天花板: 頭頂到 y 32 停住, 往上速度歸零
     if (P.y < CEILING) { P.y = CEILING; if (P.vy < 0) P.vy = 0; }
     if (P.grounded && !wasG) {
       if (P.src === 'ghost') { snd('headStand'); tEvent('head'); } else snd('land');
@@ -675,7 +698,7 @@
     var cause = null, won = false;
     if (rectOv(P.x, P.y, PW, PH, L.goal.x, L.goal.y, GOAL_W, GOAL_H)) won = true;
     else {
-      if (P.y >= CH) cause = 'pit';
+      if (P.y >= WH) cause = 'pit';
       for (var sp = 0; !cause && sp < L.spikes.length; sp++) {
         var sk = L.spikes[sp];
         if (rectOv(P.x, P.y, PW, PH, sk.x, sk.y, sk.w, SPIKE_H)) cause = 'spike';
@@ -769,7 +792,7 @@
   function drawWorld(ctx, W, cue) {
     var L = W.L;
     Art.drawBackground(ctx, { level: W.lv });
-    Art.drawPlatform(ctx, { x: W.ground.x, y: W.ground.y, w: W.ground.w, h: W.ground.h, solid: true });
+    W.grounds.forEach(function (g0) { Art.drawPlatform(ctx, { x: g0.x, y: g0.y, w: g0.w, h: g0.h, solid: true }); });
     L.platforms.forEach(function (p) { Art.drawPlatform(ctx, { x: p.x, y: p.y, w: p.w, h: p.h, solid: !!p.solid }); });
     L.walls.forEach(function (w) { Art.drawWall(ctx, { x: w.x, y: w.y, w: w.w, h: w.h }); });
     L.spikes.forEach(function (s) { Art.drawSpike(ctx, { x: s.x, y: s.y, w: s.w }); });
@@ -811,6 +834,20 @@
   }
   function drawPlay(ctx) {
     var W = S.W, P = S.P;
+    // 世界層: 放大 1.5 倍, 座標都是世界座標
+    ctx.save(); ctx.scale(ZOOM, ZOOM);
+    try { drawPlayWorld(ctx, W, P); } finally { ctx.restore(); }
+    // 畫面層
+    var ts = S.paused ? null : tDrawState();   // 暫停選單打開時教學泡泡暫藏
+    if (ts) Art.drawTutorial(ctx, ts);
+    Art.drawHud(ctx, hudState(S.phase));
+    if (S.banner >= 0 && S.phase !== 'win' && S.phase !== 'lose') {
+      var BL = LEVELS[S.level];
+      Art.drawLevelBanner(ctx, { x: BL.banner[0], y: BL.banner[1], level: S.level, levelCount: LEVEL_COUNT, title: BL.title, newThing: BL.newThing, t: Math.min(1, S.banner / BANNER_T) });
+    }
+    if (S.paused) Art.drawPauseMenu(ctx, { sel: S.pauseSel });
+  }
+  function drawPlayWorld(ctx, W, P) {
     drawWorld(ctx, W, cueNow());
     if (S.ghost && S.phase !== 'lose') {
       Art.drawGhostPath(ctx, { segments: routeSegments() });
@@ -828,14 +865,6 @@
       var ai = aimInfo();
       Art.drawAim(ctx, { px: ai.px, py: ai.py, gx: ai.gx, gy: ai.gy, ax: ai.ax, ay: ai.ay, charge: S.charge });
     }
-    var ts = S.paused ? null : tDrawState();   // 暫停選單打開時教學泡泡暫藏
-    if (ts) Art.drawTutorial(ctx, ts);
-    Art.drawHud(ctx, hudState(S.phase));
-    if (S.banner >= 0 && S.phase !== 'win' && S.phase !== 'lose') {
-      var BL = LEVELS[S.level];
-      Art.drawLevelBanner(ctx, { x: BL.banner[0], y: BL.banner[1], level: S.level, levelCount: LEVEL_COUNT, title: BL.title, newThing: BL.newThing, t: Math.min(1, S.banner / BANNER_T) });
-    }
-    if (S.paused) Art.drawPauseMenu(ctx, { sel: S.pauseSel });
   }
   function drawSoundIconFor(ctx) {
     if (window.PVDX && PVDX.on) return;   // 觸控模式不畫
@@ -844,6 +873,12 @@
   }
   function drawReplay(ctx) {
     var R = S.replay, W = R.W;
+    ctx.save(); ctx.scale(ZOOM, ZOOM);
+    try { drawReplayWorld(ctx, R, W); } finally { ctx.restore(); }
+    var hs = hudState('win'); hs.aiming = false; hs.gen = R.G;
+    Art.drawHud(ctx, hs);
+  }
+  function drawReplayWorld(ctx, R, W) {
     drawWorld(ctx, W);
     var idx = replayIdx(R, R.f), items = [];
     for (var g = R.G; g >= 1; g--) {
@@ -855,8 +890,6 @@
       Art.drawGhost(ctx, { x: it.r.x, y: it.r.y, facing: it.r.f, state: it.r.s, gen: it.g, hookable: false, hookAir: false });
       if (it.r.h) Art.drawHook(ctx, it.r.h);
     });
-    var hs = hudState('win'); hs.aiming = false; hs.gen = R.G;
-    Art.drawHud(ctx, hs);
   }
 
   // ===== 新手教學(狀態機; 畫面交給 Art.drawTutorial) =====
@@ -871,35 +904,51 @@
   var T_PRE = { die: 'move', head: 'die', hookFire: 'hookAim', whistle: 'button' };
   T_MAIN.concat(T_COND).forEach(function (id) { T.st[id] = { done: false, skipped: false, live: false, count: 0, firstMs: null }; });
 
-  // 錨點: { x, y, tail, place(可省略) }; place 省略時, 上方放不下(泡泡頂 < y 80)就改下方
-  function aPlayerHead() { var P = S.P; return P ? { x: P.x + PW / 2, y: P.y - 4, tail: 16 } : null; }
-  function aGhostHead(tail) { return function () { var g = S.ghost ? ghostRec() : null; return g ? { x: g.x + PW / 2, y: g.y - 4, tail: tail } : null; }; }
+  // 錨點(世界座標): { x, y, tail(畫面 px), place(可省略), alt(上方放不下時改下方用的錨點) }
+  // 傳給 Art 前由 tDrawState 換成畫面座標(× ZOOM)
+  var TUT_TOP = 56;   // 泡泡上緣下限(畫面座標, HUD 下方)
+  function aPlayerHead() { var P = S.P; return P ? { x: P.x + PW / 2, y: P.y - 4, tail: 16, alt: { x: P.x + PW / 2, y: P.y + 32 } } : null; }
+  function aGhostHead(tail) { return function () { var g = S.ghost ? ghostRec() : null; return g ? { x: g.x + PW / 2, y: g.y - 4, tail: tail, alt: { x: g.x + PW / 2, y: g.y + 32 } } : null; }; }
   function aPlate(key) { return function () { var p = S.W && S.W.L[key]; return p ? { x: p.x + BTN_W / 2, y: p.y, tail: 48 } : null; }; }
   function aCrLight() {
     var W = S.W; if (!(W && W.cr)) return null;
     var cd = W.L.crusher, ly = W.cr.bottom - cd.lyOff;
-    if (S.level === 7) return { x: cd.lx, y: ly, tail: 176 - ly, place: 'below' };   // 泡泡頂緣固定 y 176
+    if (S.level === 7) return { x: cd.lx, y: ly, tail: 190 - ly * ZOOM, place: 'below' };   // 泡泡頂緣固定畫面 y 190
     return { x: cd.lx, y: ly, tail: 16, place: 'above' };
   }
-  function aSeesawLand() { var s = S.W.L.seesaws[0]; return { x: s.x + SS_LAND_W / 2, y: s.y, tail: 48 }; }
-  function aSeesawLaunch() { var s = S.W.L.seesaws[0]; return { x: s.x + SS_LAUNCH_X + SS_LAND_W / 2, y: s.y, tail: 48 }; }
+  function aSeesawLand() { var s = S.W.L.seesaws[0]; return { x: s.x + SS_LAND_W / 2, y: s.y + BTN_H, tail: 48 }; }
+  function aSeesawLaunch() { var s = S.W.L.seesaws[0]; return { x: s.x + SS_LAUNCH_X + SS_LAND_W / 2, y: s.y + BTN_H, tail: 48 }; }
+  // 第 5 階段: 泡泡在角色側邊(幽靈的另一側)。泡泡寬以 220 畫面 px 估算, 夾邊會蓋到角色就改放另一側
+  function aHookFireSide() {
+    var P = S.P, gr = S.ghost ? ghostRec() : null; if (!P) return null;
+    var ghostRight = gr ? (gr.x + PW / 2 >= P.x + PW / 2) : false;
+    var place = ghostRight ? 'left' : 'right', EST = 220;
+    if (place === 'left' && P.x * ZOOM - 16 - EST < 12) place = 'right';
+    else if (place === 'right' && (P.x + PW) * ZOOM + 16 + EST > CW - 12) place = 'left';
+    return place === 'left' ? { x: P.x, y: P.y + 14, tail: 16, place: 'left' } : { x: P.x + PW, y: P.y + 14, tail: 16, place: 'right' };
+  }
+  // 標示框: 世界框 × 1.5 後四邊各外擴 6(畫面座標), 上緣不高於 48(HUD 下緣)
+  function markBox(wx, wy, ww, wh) {
+    var x = wx * ZOOM - 6, y = wy * ZOOM - 6, w = ww * ZOOM + 12, h = wh * ZOOM + 12;
+    if (y < 48) { h -= 48 - y; y = 48; }
+    return { x: x, y: y, w: w, h: h };
+  }
   var TD = {
     move: { text: '走、跳', keys: ['left', 'right', 'jump'], anchor: aPlayerHead },
-    die: { text: '到不了旗子? 先死一次', keys: [], anchor: function () { return { x: 1150, y: 600, tail: 16 }; },
-      mark: function () { var g = S.W.L.goal; return { x: g.x - 4, y: g.y - 4, w: GOAL_W + 8, h: GOAL_H + 8 }; } },
+    die: { text: '到不了旗子? 先死一次', keys: [], anchor: function () { return { x: 440, y: 456, tail: 48 }; },
+      mark: function () { var g = S.W.L.goal; return markBox(g.x, g.y, GOAL_W, GOAL_H); } },
     head: { text: '跳到他頭上', keys: [], anchor: aGhostHead(16) },
-    hookAim: { text: '他跳起時 按 Z', keys: ['Z'], anchor: aGhostHead(50) },
-    hookFire: { text: '蓄滿 再按 Z', keys: ['Z'],
-      anchor: function () { var P = S.P; return P ? { x: P.x + PW / 2, y: P.y + 32, tail: 16, place: 'below' } : null; } },
+    hookAim: { text: '他跳起時 按 Z', keys: ['Z'], anchor: aGhostHead(56) },
+    hookFire: { text: '蓄滿 再按 Z', keys: ['Z'], anchor: aHookFireSide },
     gate: { text: '有人踩著, 門就開', keys: [], anchor: aPlate('plateGate'),
-      mark: function () { var g = S.W.L.gate; return { x: g.x - 6, y: g.y - 6, w: GATE_W + 12, h: GATE_H + 12 }; } },
+      mark: function () { var g = S.W.L.gate; return markBox(g.x, g.y, GATE_W, GATE_H); } },
     lift: { text: '踩住開關, 電梯會升', keys: [], anchor: aPlate('plateLift'),
-      mark: function () { var L = S.W.L; return { x: L.lift.x - 6, y: S.W.liftY - 6, w: LIFT_W + 12, h: 24 }; } },
+      mark: function () { var L = S.W.L; return markBox(L.lift.x, S.W.liftY, LIFT_W, 12); } },
     seesaw: { text: '跳到這頭, 另一頭彈起', keys: [],
       anchor: aSeesawLand, fxAnchor: aSeesawLaunch,
-      mark: function () { var s = S.W.L.seesaws[0]; return { x: s.x + SS_LAUNCH_X - 6, y: s.y - 6, w: SS_LAND_W + 12, h: 18 }; } },
+      mark: function () { var s = S.W.L.seesaws[0]; return markBox(s.x + SS_LAUNCH_X, s.y, SS_LAND_W, BTN_H); } },
     button: { text: '踩按鈕, 壓板升起', keys: [], anchor: aPlate('button'),
-      mark: function () { var W = S.W, c = W.L.crusher; return { x: c.x - 6, y: W.cr.bottom - 30, w: c.w + 12, h: 36 }; } },
+      mark: function () { var W = S.W, c = W.L.crusher; return markBox(c.x, W.cr.bottom - 20, c.w, 20); } },
     whistle: { text: '吹哨: 他回來再踩', keys: ['space'], anchor: aPlate('button') },
     chain: { text: '綠燈時 再吹哨', keys: ['space'], anchor: aCrLight },
     slow: { text: '他走太慢, 整關重來', keys: ['esc'], anchor: aCrLight, fxAnchor: aPlayerHead },
@@ -1056,8 +1105,13 @@
     if (!a) return null;
     var mark = null;
     if (d.mark) { try { mark = d.mark(); } catch (e) { console.error(e); mark = null; } }
-    var place = a.place || ((a.y - a.tail - 52 < 80) ? 'below' : 'above');   // 上方放不下(壓到 HUD)就改下方
-    return { stage: id, text: d.text, keys: d.keys.slice(), pressed: pressed, ax: a.x, ay: a.y, place: place, tail: a.tail,
+    // 世界錨點 → 畫面座標; above 放不下(泡泡頂緣 < 56, 壓到 HUD)就改 below, 錨點改腳底中點
+    var place = a.place || 'above', ax = a.x * ZOOM, ay = a.y * ZOOM;
+    if (place === 'above' && ay - a.tail - 52 < TUT_TOP) {
+      place = 'below';
+      if (a.alt) { ax = a.alt.x * ZOOM; ay = a.alt.y * ZOOM; }
+    }
+    return { stage: id, text: d.text, keys: d.keys.slice(), pressed: pressed, ax: ax, ay: ay, place: place, tail: a.tail,
       pop: pop, finishing: !!fx, done: fx ? done : 0, mark: mark };
   }
 

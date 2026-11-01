@@ -1,4 +1,5 @@
 /* 幽影接力 音效 / 音樂 — window.Sound
+ * polish-8(音效): spec 本輪音效、音樂不變, 素材 / 音量 / 事件全部沿用 polish-7
  * polish-7(音效): 新增 pauseOpen、pauseClose、menuMove(同一套 8-bit 音效包); 暫停選單開著時音樂降到 30% 並悶化、蓄力聲暫停,
  *   關閉時恢復(瞄準中打開的, 關掉後仍維持瞄準的悶化); 悶化改成「原因表」(瞄準 / 暫停), 掛勾放在 play 最前面, 不受靜音與限頻影響
  * polish-5: 新增 tutorialShow、tutorialKey(三段音高)、tutorialDone(同一套 8-bit 音效包); 其餘沿用 polish-4
