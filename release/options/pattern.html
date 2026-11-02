@@ -1,0 +1,22 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:0;background:#4776c3}canvas{display:block}</style></head><body>
+<canvas id="c" width="256" height="256"></canvas>
+<script>
+// 接力吉尼色帶圖塊: 主色底 + 淡淡的虛線跳躍弧線(幽靈軌跡)與小星點; 每個元素在 ±256 位移再畫一次, 確保無縫
+var c = document.getElementById('c'), x = c.getContext('2d'), N = 256;
+x.fillStyle = '#4776c3'; x.fillRect(0, 0, N, N);
+function wrap(fn) { for (var i = -1; i <= 1; i++) for (var j = -1; j <= 1; j++) { x.save(); x.translate(i * N, j * N); fn(); x.restore(); } }
+// 跳躍弧線: 起點 → 拋物線 → 落點, 一棒接一棒
+var arcs = [[10, 70, 118, 70, 46], [128, 70, 236, 70, 46], [-50, 196, 58, 196, 40], [70, 196, 190, 196, 52]];
+x.lineCap = 'round';
+arcs.forEach(function (a) {
+  wrap(function () {
+    x.strokeStyle = 'rgba(255,255,255,0.16)'; x.lineWidth = 4; x.setLineDash([2, 10]);
+    x.beginPath(); x.moveTo(a[0], a[1]); x.quadraticCurveTo((a[0] + a[2]) / 2, a[1] - a[4] * 2, a[2], a[3]); x.stroke();
+    x.setLineDash([]); x.fillStyle = 'rgba(255,255,255,0.14)';
+    x.beginPath(); x.arc(a[2], a[3], 4, 0, Math.PI * 2); x.fill();
+  });
+});
+// 小星點
+var st = [[60, 20, 2.5], [190, 30, 2], [240, 120, 2.5], [30, 130, 2], [150, 150, 2], [110, 240, 2.5], [220, 230, 2]];
+st.forEach(function (s) { wrap(function () { x.fillStyle = 'rgba(255,255,255,0.2)'; x.beginPath(); x.arc(s[0], s[1], s[2], 0, Math.PI * 2); x.fill(); }); });
+</script></body></html>
