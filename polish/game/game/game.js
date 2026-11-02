@@ -362,7 +362,7 @@
   }
 
   // ===== 觸控鏡頭(狀態每步更新; 電腦版不使用) =====
-  // 鏡頭左右可以超出關卡邊界, 讓角色走到關卡兩端時不會躲在左下 ◀ ▶ / 右下跳躍鍵後面(超出的部分在畫面上是按鈕底下的暗色留白)
+  // 鏡頭左右可以超出關卡邊界, 讓角色走到關卡兩端時不會躲在左下 ◀ ▶ / 右下跳躍鍵後面(超出的部分畫成邊界磚牆, 見繪製段)
   // 左: touch.js 左右兩鍵右緣約 338 + 留白 → 角色至少在畫面 x 300 外; 右: 跳躍鍵左緣約 CW − 202 → 約 230
   var CAM_PAD_L = 300 / ZT, CAM_PAD_R = 230 / ZT;
   function camMax() { return { x: Math.max(0, WORLD_W - CW / ZT), y: Math.max(0, WH - CH / ZT) }; }
@@ -791,11 +791,24 @@
       try { bs.x = 0; bs.y = 0; Art.drawLevelBanner(ctx, bs); } finally { ctx.restore(); }
     } else Art.drawLevelBanner(ctx, bs);
   }
+  // 觸控模式鏡頭超出關卡的兩側(角色走到關卡兩端時讓出按鈕位置): 畫成整排磚牆, 看起來是關卡的邊界牆, 不是黑塊
+  function drawEdgeWalls(ctx) {
+    edgeWall(ctx, -CAM_PAD_L - 8, CAM_PAD_L + 8);
+    edgeWall(ctx, WORLD_W, CAM_PAD_R + 8);
+  }
+  // 一整面磚牆: 用美術的牆面畫底與上下緣, 再補整面交錯的磚縫(美術的牆只畫兩條縱縫, 寬牆會變成大方塊)
+  function edgeWall(ctx, x, w) {
+    Art.drawWall(ctx, { x: x, y: 0, w: w, h: WH });
+    ctx.save(); ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (var by = 11, row = 0; by < WH - 2; by += 11, row++) {
+      for (var jx = x + (row % 2 ? 12 : 24); jx < x + w - 2; jx += 24) { ctx.moveTo(jx, by - 11); ctx.lineTo(jx, by); }
+    }
+    ctx.stroke(); ctx.restore();
+  }
   function drawPlay(ctx) {
     var W = S.W, P = S.P;
-    if (isTouch()) { ctx.save(); ctx.fillStyle = '#0a0d18'; ctx.fillRect(0, 0, CW, CH); ctx.restore(); }   // 鏡頭超出關卡的留白
     worldBegin(ctx);
-    try { drawPlayWorld(ctx, W, P); } finally { ctx.restore(); }
+    try { drawPlayWorld(ctx, W, P); if (isTouch()) drawEdgeWalls(ctx); } finally { ctx.restore(); }
     // 畫面層
     var ts = S.paused ? null : tDrawState();   // 暫停選單打開時教學泡泡暫藏
     if (ts) Art.drawTutorial(ctx, ts);
