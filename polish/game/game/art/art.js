@@ -6,12 +6,13 @@
 // polish-8: 鏡頭拉近。世界層函式(drawBackground ~ drawAim)照「世界座標」畫(世界 853⅓ × 480, RD 先 scale 1.5);
 //           畫面層函式(drawTutorial、drawHud、drawLevelBanner、drawPauseMenu、drawSoundIcon、整頁畫面)照 1280 × 720 畫。
 //           HUD 70 → 48; 天花板 32、地面頂 456(世界); 世界層的鍵帽 / 字 / 燈縮成世界單位。
+// polish-9: 收成五關。刪 drawButton、drawCrusher、drawWhistleRing(與節奏燈、哨子圖示); 靜音圖示不用紅(壓暗 + ×);
+//           教學泡泡依 avoid 避開聲音圖示; 所有東西只畫設計區 0~1280(世界 0~853⅓), 不往兩側延伸。
 (function () {
   'use strict';
 
   // ---------- 設計座標常數(全畫面類函式只引用這些) ----------
-  var W = 1280, H = 720, HUD_H = 48;   // 畫面座標
-  var VX = 0, VW = W;              // 全畫面底色的橫向範圍; 發布時依裝置變寬再改, 中間 1280 內容不動
+  var W = 1280, H = 720, HUD_H = 48;   // 畫面座標; 整面的東西一律畫 0~1280
   var CX = W / 2;
   // 世界座標(世界層函式只引用這些)
   var WS = 1.5;                    // RD 的放大倍率(美術不自己乘, 只用來換算範圍)
@@ -36,15 +37,11 @@
     ghost: '#a8c4ff',
     ghostEdge: '#e6eeff',
     path: '#a8c4ff',
-    whistle: '#ffffff',
     hook: '#a6ff4d',
     lift: '#36d6e7',
     liftDim: '#1d7c87',
     gate: '#e05cff',
     gateDim: '#7a3290',
-    crusher: '#ff8c1a',
-    crusherDark: '#7a3c06',
-    crusherBody: '#3a2414',
     seesaw: '#8a93ad',
     seesawLand: '#4b5470',
     seesawLaunch: '#eef1f8',
@@ -56,10 +53,8 @@
     danger: '#ff4d4d',
     ok: '#ffffff',
     timer: '#dfe6f5',
-    cueOk: '#2fe08a',
-    cueWait: '#ffe640',
-    cueLate: '#ff4d4d',
-    cueOff: '#3a3f4f'
+    muted: '#5d6478',
+    mutedMark: '#d6dbe8'
   };
 
   var FONT = '"Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif';
@@ -73,8 +68,8 @@
     'http://creativecommons.org/licenses/by/4.0/'
   ];
 
-  // 關卡的坑範圍(世界 x; 背景坑底警示用; 第 6 關沒有坑; null 右端 = 到世界右緣)
-  var PITS = { 1: [400, 480], 2: [560, null], 3: [560, null], 4: [560, null], 5: [400, null], 7: [460, null] };
+  // 關卡的坑範圍(世界 x; 背景坑底警示用; null 右端 = 到世界右緣)
+  var PITS = { 1: [400, 480], 2: [560, null], 3: [560, null], 4: [560, null], 5: [400, null] };
 
   // ---------- 共用小工具 ----------
   function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : d; }
@@ -199,27 +194,7 @@
     g.addColorStop(0, C.bgTop);
     g.addColorStop(1, C.bg);
     ctx.fillStyle = g;
-    ctx.fillRect(VX, 0, VW, H);
-  }
-
-  // 壓板 / 按鈕共用斜紋(壓板色專屬記號)
-  function hazardStripes(ctx, x, y, w, h, color, gap) {
-    gap = gap || 9;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(x, y, w, h);
-    ctx.clip();
-    ctx.fillStyle = color;
-    for (var sx = x - h; sx < x + w + h; sx += gap * 2) {
-      ctx.beginPath();
-      ctx.moveTo(sx, y + h);
-      ctx.lineTo(sx + gap, y + h);
-      ctx.lineTo(sx + gap + h, y);
-      ctx.lineTo(sx + h, y);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.restore();
+    ctx.fillRect(0, 0, W, H);
   }
 
   // 「空白 XXX」/ 「空白 開始」這類底部提示(鍵帽 + 字), 置中於 cx
@@ -474,21 +449,25 @@
     ctx.lineWidth = 2.5;
     ctx.strokeStyle = STROKE;
     ctx.stroke();
-    ctx.fillStyle = muted ? C.textDim : C.text;
+    ctx.fillStyle = muted ? C.muted : C.text;
     ctx.fill();
     ctx.lineWidth = 1.8;
     if (!muted) {
+      // 開聲: 喇叭 + 兩道音波弧線
       ctx.strokeStyle = C.text;
       ctx.beginPath(); ctx.arc(cx + 1, cy, 4.5, -0.9, 0.9); ctx.stroke();
       ctx.beginPath(); ctx.arc(cx + 1, cy, 8.5, -0.9, 0.9); ctx.stroke();
     } else {
-      ctx.strokeStyle = STROKE;
-      ctx.lineWidth = 4.5;
+      // 靜音: 喇叭壓暗、音波消失, 右側一個淺灰「×」(不用紅 / 橘: 紅是尖刺、坑、警告的保留色)
+      var mx = cx + 6, my = cy, d = 3.6;
       ctx.beginPath();
-      ctx.moveTo(cx - 10, cy + 9); ctx.lineTo(cx + 10, cy - 9);
+      ctx.moveTo(mx - d, my - d); ctx.lineTo(mx + d, my + d);
+      ctx.moveTo(mx + d, my - d); ctx.lineTo(mx - d, my + d);
+      ctx.strokeStyle = STROKE;
+      ctx.lineWidth = 4.2;
       ctx.stroke();
-      ctx.strokeStyle = C.danger;
-      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = C.mutedMark;
+      ctx.lineWidth = 2;
       ctx.stroke();
     }
     ctx.restore();
@@ -555,64 +534,6 @@
     ctx.restore();
   }
 
-  // ---------- 壓板節奏燈(燈座常駐; 四態 = 顏色 + 記號 + 動態) ----------
-  // 世界座標: 燈 r 3.8, 燈座 r 5(外框線寬 1 → 外緣 5.5); 記號照 0.47 倍縮
-  function cueLamp(ctx, cx, cy, cue) {
-    var r = 3.8;
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#0e1220';
-    ctx.fill();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = C.crusher;
-    ctx.stroke();
-    var col = cue === 'ok' ? C.cueOk : cue === 'wait' ? C.cueWait : cue === 'late' ? C.cueLate : C.cueOff;
-    // wait 慢閃(1.2 秒一次, 亮度 0.45~1); ok / late 常亮
-    var a = cue === 'wait' ? 0.45 + 0.55 * (0.5 + 0.5 * Math.cos(nowMs() / 1000 * Math.PI * 2 / 1.2)) : 1;
-    ctx.save();
-    ctx.globalAlpha = a;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = col;
-    ctx.fill();
-    ctx.restore();
-    if (cue === 'ok' || cue === 'wait' || cue === 'late') {
-      ctx.strokeStyle = '#0e1220';
-      ctx.fillStyle = '#0e1220';
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.lineWidth = 1.1;
-      ctx.beginPath();
-      if (cue === 'ok') {
-        ctx.moveTo(cx - 2, cy); ctx.lineTo(cx - 0.5, cy + 1.7); ctx.lineTo(cx + 2, cy - 1.7);
-        ctx.stroke();
-      } else if (cue === 'late') {
-        ctx.moveTo(cx - 1.7, cy - 1.7); ctx.lineTo(cx + 1.7, cy + 1.7);
-        ctx.moveTo(cx + 1.7, cy - 1.7); ctx.lineTo(cx - 1.7, cy + 1.7);
-        ctx.stroke();
-      } else {
-        // 沙漏(他還在路上, 等)
-        ctx.lineWidth = 0.8;
-        ctx.moveTo(cx - 1.7, cy - 2.2); ctx.lineTo(cx + 1.7, cy - 2.2);
-        ctx.lineTo(cx - 1.5, cy + 2.2); ctx.lineTo(cx + 1.5, cy + 2.2);
-        ctx.closePath();
-        ctx.moveTo(cx - 1.7, cy - 2.2); ctx.lineTo(cx + 1.7, cy + 2.2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(cx - 1.1, cy + 2.2); ctx.lineTo(cx, cy + 0.9); ctx.lineTo(cx + 1.1, cy + 2.2);
-        ctx.closePath();
-        ctx.fill();
-      }
-    } else {
-      ctx.beginPath();
-      ctx.arc(cx - 1.2, cy - 1.2, 1.1, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
   // ---------- 新手教學泡泡 ----------
   var TUT = {
     fill: '#f4f6fb',      // 泡泡底
@@ -624,14 +545,14 @@
     keyOn: '#c9f7de'      // 已按過的鍵帽底
   };
   var TUT_PAD = 14, TUT_BH = 52, TUT_KEY = 26, TUT_KEY_FS = 14, TUT_FONT = 16, TUT_MAXW = 300;
-  var TUT_KEYS = ['left', 'right', 'jump', 'Z', 'space', 'esc'];
+  var TUT_KEYS = ['left', 'right', 'jump', 'Z', 'esc'];
   var tutKeySeen = {};
 
   function tutKeyLabel(k) {
-    return k === 'left' ? '←' : k === 'right' ? '→' : k === 'jump' ? '↑' : k === 'space' ? '空白' : k === 'esc' ? 'Esc' : 'Z';
+    return k === 'left' ? '←' : k === 'right' ? '→' : k === 'jump' ? '↑' : k === 'esc' ? 'Esc' : 'Z';
   }
   function tutKeyOpts(k) {
-    return { fs: TUT_KEY_FS, minW: k === 'space' ? 46 : 0 };
+    return { fs: TUT_KEY_FS, minW: 0 };
   }
   function tutKeyWidth(ctx, k) { return keycapW(ctx, tutKeyLabel(k), TUT_KEY, tutKeyOpts(k)); }
 
@@ -648,7 +569,6 @@
     var o = tutKeyOpts(k);
     if (pressed) { o.fill = TUT.keyOn; o.edge = TUT.doneDark; }
     else if (k === 'Z') o.frame = C.hook;             // 與幽靈旁 Z 同
-    else if (k === 'space') o.frame = C.cueOk;        // 與節奏燈旁空白鍵同
     keycap(ctx, tutKeyLabel(k), 0, 0, s, o);
     if (pressed) {
       var bx = w / 2 - 1, by = -s / 2 + 1;
@@ -771,56 +691,8 @@
     ctx.restore();
   }
 
-  // ---------- 解鎖頁用的哨子(以 0,0 為中心, 約 46 × 26) ----------
-  function whistleIcon(ctx) {
-    ctx.save();
-    ctx.lineJoin = 'round';
-    function shape() {
-      rr(ctx, -23, -10, 27, 9, 2.5);
-      ctx.moveTo(19, 2);
-      ctx.arc(7, 2, 12, 0, Math.PI * 2);
-    }
-    ctx.beginPath(); shape();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = C.outline;
-    ctx.stroke();
-    ctx.beginPath(); shape();
-    ctx.fillStyle = C.whistle;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(7, 2, 7.5, 0.2, Math.PI * 0.95);
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = '#c9d0e2';
-    ctx.stroke();
-    ctx.fillStyle = C.outline;
-    rr(ctx, -3, -10, 6, 3.5, 1);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(17, -9, 3.5, 0, Math.PI * 2);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = C.outline;
-    ctx.stroke();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = C.whistle;
-    ctx.stroke();
-    ctx.restore();
-  }
-
   // ---------- 開場橫幅的新東西圖示(遊戲內畫法; 以 0,0 為中心, 約 ±56 × ±40) ----------
-  var NEW_THINGS = ['relay', 'hook', 'gate', 'lift', 'seesaw', 'button', 'final'];
-  function plusSign(ctx, cx, cy) {
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = STROKE;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - 9); ctx.lineTo(cx, cy + 9); ctx.moveTo(cx - 9, cy); ctx.lineTo(cx + 9, cy);
-    ctx.stroke();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = C.text;
-    ctx.stroke();
-    ctx.restore();
-  }
+  var NEW_THINGS = ['relay', 'hook', 'gate', 'lift', 'seesaw'];
   function introIcon(ctx, A, kind, cx, cy) {
     kind = oneOf(kind, NEW_THINGS, 'relay');
     ctx.save();
@@ -846,16 +718,6 @@
       ctx.scale(1.05, 1.05);
       A.drawPlatform(ctx, { x: -58, y: 12, w: 116, h: 24, solid: true });
       A.drawSeesaw(ctx, { x: -50, y: 6, tilt: 0.81, swing: 0.3, swinging: true });
-    } else if (kind === 'button') {
-      A.drawPlatform(ctx, { x: -58, y: 30, w: 116, h: 20, solid: true });
-      A.drawButton(ctx, { x: -54, y: 24, pressed: true });
-      A.drawCrusher(ctx, { x: -4, w: 62, top: -40, bottom: 12, hold: 0.6, warn: false, cue: 'none', lx: 46, ly: -6, keySide: 'left' });
-    } else if (kind === 'final') {
-      ctx.scale(0.8, 0.8);
-      A.drawPlatform(ctx, { x: -72, y: 30, w: 144, h: 20, solid: true });
-      A.drawSeesaw(ctx, { x: -70, y: 24, tilt: 0.81, swing: 0.3, swinging: true });
-      plusSign(ctx, 2, 2);
-      A.drawCrusher(ctx, { x: 18, w: 54, top: -48, bottom: 10, hold: 0.6, warn: false, cue: 'none', lx: 58, ly: -8, keySide: 'left' });
     } else {
       // relay: 三個小人(1 號已消失 / 2 號幽靈 / 3 號你)
       ctx.scale(1.15, 1.15);
@@ -874,8 +736,8 @@
     drawBackground: function (ctx, s) {
       s = s || {};
       var level = s.level;
-      // 世界層: 世界座標。橫向範圍 = 畫面 VX ~ VX+VW 換成世界(÷ 1.5), 發布變寬時自動跟著延伸
-      var x0 = VX / WS, x1 = (VX + VW) / WS;
+      // 世界層: 世界座標。只畫世界 0 ~ 853⅓(= 畫面 0~1280), 不往兩側延伸
+      var x0 = 0, x1 = WW;
       ctx.save();
       var g = ctx.createLinearGradient(0, 0, 0, WH);
       g.addColorStop(0, C.bgTop);
@@ -1098,123 +960,6 @@
       ctx.restore();
     },
 
-    drawButton: function (ctx, s) {
-      // 40 × 6, 嵌在地面上: 圓頂按鈕(與平的開關踏板不同外形) + 底座斜紋(= 壓板記號); 壓板色
-      s = s || {};
-      ctx.save();
-      var x = num(s.x, 0), y = num(s.y, 0), w = 40;
-      var on = s.pressed === true;
-      ctx.fillStyle = '#0e1220';
-      ctx.fillRect(x, y + 3, w, 3);
-      if (on) {
-        rr(ctx, x + 4, y + 3.5, w - 8, 2.5, 1);
-        ctx.fillStyle = C.crusher;
-        ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.75)';
-        ctx.fillRect(x + 6, y + 3.5, w - 12, 0.8);
-        ctx.fillStyle = C.crusher;
-        ctx.fillRect(x, y + 3, 2, 3);
-        ctx.fillRect(x + w - 2, y + 3, 2, 3);
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(x + 5, y + 4.5);
-        ctx.bezierCurveTo(x + 7, y + 0.2, x + w - 7, y + 0.2, x + w - 5, y + 4.5);
-        ctx.closePath();
-        ctx.fillStyle = '#c4650f';
-        ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = C.outline;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x + 11, y + 2.6);
-        ctx.quadraticCurveTo(x + 20, y + 1.2, x + 29, y + 2.6);
-        ctx.strokeStyle = '#ffd2a0';
-        ctx.lineWidth = 1;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-      }
-      ctx.fillStyle = C.crusherDark;
-      ctx.fillRect(x + 1, y + 4.5, w - 2, 1.5);
-      hazardStripes(ctx, x + 1, y + 4.5, w - 2, 1.5, on ? C.crusher : 'rgba(255,140,26,0.6)', 2.5);
-      ctx.restore();
-    },
-
-    drawCrusher: function (ctx, s) {
-      // 尖刺壓板(世界座標): x~x+w, top~bottom 的實心柱; 底部 12 朝下紅尖刺(含在 bottom 以上)
-      s = s || {};
-      ctx.save();
-      var x = num(s.x, 0), w = Math.max(20, len(s.w, 350));
-      var top = Math.max(-2000, Math.min(2000, num(s.top, CEIL))), bottom = Math.max(top + 24, Math.min(top + 2000, num(s.bottom, top + 120)));
-      var hold = clamp01(s.hold);
-      var SH = 12, bodyB = bottom - SH, bandH = 6;
-      // 升起時間 interface 沒傳, 依柱長判斷: 第 6 關巨柱(約 379~424 高)1.7 秒, 第 7 關短柱(33~78 高)1.2 秒
-      var rise = (bottom - top) > 300 ? 1.7 : 1.2;
-      var rem = hold * rise;
-      var flashOn = s.warn === true && hold > 0 && (Math.floor(rem / 0.075) % 2 === 0);
-      var cue = oneOf(s.cue, ['ok', 'wait', 'late', 'none'], 'none');
-      var keyLeft = s.keySide === 'left';
-      var lx = num(s.lx, x + w - 24), ly = num(s.ly, bottom - 16);
-      var i;
-      // 本體
-      ctx.fillStyle = C.crusherBody;
-      ctx.fillRect(x, top, w, bodyB - top);
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-      ctx.lineWidth = 0.8;
-      ctx.beginPath();
-      for (var py = top + 12; py < bodyB - bandH - 3; py += 12) { ctx.moveTo(x + 2.5, py); ctx.lineTo(x + w - 2.5, py); }
-      ctx.stroke();
-      ctx.fillStyle = flashOn ? C.danger : C.crusher;
-      ctx.fillRect(x, top, 2, bodyB - top);
-      ctx.fillRect(x + w - 2, top, 2, bodyB - top);
-      // 下緣斜紋帶
-      ctx.fillStyle = C.crusherDark;
-      ctx.fillRect(x, bodyB - bandH, w, bandH);
-      hazardStripes(ctx, x, bodyB - bandH, w, bandH, flashOn ? C.danger : C.crusher, 5);
-      // 尖刺
-      ctx.fillStyle = '#5a1a20';
-      ctx.fillRect(x, bodyB, w, 2);
-      var n = Math.max(1, Math.round(w / 6)), sw = w / n;
-      ctx.fillStyle = flashOn ? '#ff9a9a' : C.spike;
-      for (i = 0; i < n; i++) {
-        ctx.beginPath();
-        ctx.moveTo(x + i * sw, bodyB + 1.5);
-        ctx.lineTo(x + i * sw + sw / 2, bottom);
-        ctx.lineTo(x + (i + 1) * sw, bodyB + 1.5);
-        ctx.closePath();
-        ctx.fill();
-      }
-      ctx.strokeStyle = C.outline;
-      ctx.lineWidth = 0.8;
-      ctx.strokeRect(x + 0.4, top + 0.4, w - 0.8, bodyB - top - 0.4);
-
-      // 燈這一列: [倒數量條][(左側時)空白鍵帽][燈][(右側時)空白鍵帽]; 量條一律在燈左邊, 不畫在燈上方
-      var LR = 5.5, KW = 24, KH = WKEY_H, GAP = 3;
-      var keyX = keyLeft ? lx - LR - GAP - KW / 2 : lx + LR + GAP + KW / 2;
-      var barR = keyLeft ? keyX - KW / 2 - 4 : lx - LR - 4;
-      var tx = x + 6, tw = barR - tx, th = 5, ty = ly - th / 2;
-      if (tw >= 14) {
-        rr(ctx, tx - 1.2, ty - 1.2, tw + 2.4, th + 2.4, 2);
-        ctx.fillStyle = 'rgba(8,10,18,0.85)';
-        ctx.fill();
-        // 最後 0.3 秒那一段(左端 0.3 / 升起時間)預先染暗紅
-        var wz = tw * 0.3 / rise;
-        ctx.fillStyle = 'rgba(255,77,77,0.22)';
-        ctx.fillRect(tx, ty, wz, th);
-        if (hold > 0) {
-          var fw = Math.max(2, tw * hold);
-          ctx.fillStyle = s.warn === true ? (flashOn ? C.danger : '#ffffff') : '#ffe2b8';
-          ctx.fillRect(tx, ty, fw, th);
-          ctx.fillStyle = 'rgba(255,255,255,0.6)';
-          ctx.fillRect(tx, ty, fw, 1.2);
-        }
-        ctx.fillStyle = 'rgba(8,10,18,0.9)';
-        for (var k = 1; k * 0.3 < rise - 0.05; k++) ctx.fillRect(tx + tw * (k * 0.3) / rise - 0.5, ty, 1, th);
-      }
-      cueLamp(ctx, lx, ly, cue);
-      if (cue === 'ok') keycap(ctx, '空白', keyX, ly, KH, wKeyOpts(C.cueOk, KW));
-      ctx.restore();
-    },
-
     drawSeesaw: function (ctx, s) {
       // 100 × 6: 左 40 落點端(暗、圓頭 ↓) / 中 20 板身與支點 / 右 40 發射端(亮、圓頭 ↑)
       // 擺動演出只用圓弧 / 圓點 / 扁橢圓, 不用尖角、不用紅橘系(H47)
@@ -1403,42 +1148,6 @@
       ctx.restore();
     },
 
-    drawWhistleRing: function (ctx, s) {
-      s = s || {};
-      var t = clamp01(s.t);
-      var cx = num(s.cx, 0), cy = num(s.cy, 0);
-      ctx.save();
-      ctx.globalAlpha = 1 - t * 0.85;
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = C.whistle;
-      var r1 = 7 + 13 * t;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r1, 0, Math.PI * 2);
-      ctx.stroke();
-      if (t > 0.2) {
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 7 + 13 * (t - 0.2), 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      // 外圈 8 支朝內的小箭頭(「回來!」), 外緣最大約 27.5(世界; 上限 28)
-      ctx.lineWidth = 1.4;
-      ctx.lineCap = 'round';
-      var ri = r1 + 2, ro = r1 + 7 - 1.2 * t;
-      for (var i = 0; i < 8; i++) {
-        var a = i * Math.PI / 4 + Math.PI / 8;
-        var ix = cx + Math.cos(a) * ri, iy = cy + Math.sin(a) * ri;
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(a) * ro, cy + Math.sin(a) * ro);
-        ctx.lineTo(ix, iy);
-        ctx.moveTo(ix + Math.cos(a + 0.5) * 2.5, iy + Math.sin(a + 0.5) * 2.5);
-        ctx.lineTo(ix, iy);
-        ctx.lineTo(ix + Math.cos(a - 0.5) * 2.5, iy + Math.sin(a - 0.5) * 2.5);
-        ctx.stroke();
-      }
-      ctx.restore();
-    },
-
     drawGhost: function (ctx, s) {
       s = s || {};
       var x = num(s.x, 0), y = num(s.y, 0);
@@ -1578,13 +1287,13 @@
       var maxGen = Math.max(1, Math.round(num(s.maxGen, 3)));
       var gen = Math.max(1, Math.min(maxGen, Math.round(num(s.gen, 1))));
       var phase = oneOf(s.phase, ['play', 'dying', 'win', 'lose'], 'play');
-      var level = Math.round(num(s.level, 1)), levelCount = Math.round(num(s.levelCount, 7));
+      var level = Math.round(num(s.level, 1)), levelCount = Math.round(num(s.levelCount, 5));
       var i, x;
       ctx.save();
       ctx.fillStyle = C.hudBg;
-      ctx.fillRect(VX, 0, VW, HUD_H);
+      ctx.fillRect(0, 0, W, HUD_H);
       ctx.fillStyle = C.hudLine;
-      ctx.fillRect(VX, HUD_H - 2, VW, 2);
+      ctx.fillRect(0, HUD_H - 2, W, 2);
 
       // 左塊: 第 L / N 關 | 第 g 代 + maxGen 個小圓點
       var ly = HUD_LY;
@@ -1616,18 +1325,8 @@
       // 中塊: 剩餘時間(只在 play; 瞄準中照畫, 數字停住)
       if (phase === 'play') hudTimer(ctx, CX - TIMER_W / 2, s.timeLeft, s.timeMax);
 
-      // 右塊(貼右緣 12, 靠右): [Z 鉤爪 ▢▢] [空白 吹哨]
+      // 右塊(貼右緣 12, 靠右): [Z 鉤爪 ▢▢]
       var xr = W - 12;
-      if (s.whistleUnlocked === true) {
-        ctx.save();
-        if (s.aiming === true) ctx.globalAlpha = 0.35;   // 瞄準中吹哨無效
-        text(ctx, '吹哨', xr, ly, 14, C.text, 'right');
-        var w1 = textW(ctx, '吹哨', 14);
-        var kw = keycapW(ctx, '空白', 18, { minW: 34 });
-        keycap(ctx, '空白', xr - w1 - 5 - kw / 2, ly, 18, { minW: 34 });
-        ctx.restore();
-        xr -= w1 + 5 + kw + 22;
-      }
       if (s.hookUnlocked === true) {
         var hm = Math.max(0, Math.min(6, Math.round(num(s.hookMax, 2))));
         var hl = Math.max(0, Math.min(hm, Math.round(num(s.hookLeft, hm))));
@@ -1651,7 +1350,7 @@
       }
 
       // 瞄準暫停: 遊戲區霧框 + 四角括號(不畫字)
-      if (s.aiming === true) pauseFrame(ctx, VX, HUD_H, VW, H - HUD_H);
+      if (s.aiming === true) pauseFrame(ctx, 0, HUD_H, W, H - HUD_H);
 
       if (phase === 'dying' && gen < maxGen) {
         text(ctx, '第 ' + (gen + 1) + ' 代準備出發…', CX, HUD_H + 22, 16, C.textDim);
@@ -1669,17 +1368,18 @@
         ctx.stroke();
         var sW = '過關!', wW = textW(ctx, sW, 26);
         var sA = '三代合力回放中', wA = textW(ctx, sA, 13);
-        var kwN = keycapW(ctx, '空白', 20, { minW: 38 }), wN = textW(ctx, '下一關', 16);
+        var nextS = level >= levelCount ? '繼續' : '下一關';   // 最後一關過關後是全破畫面
+        var kwN = keycapW(ctx, '空白', 20, { minW: 38 }), wN = textW(ctx, nextS, 16);
         var tot = wW + 18 + wA + 16 + kwN + 6 + wN, xx = PXw + PWw / 2 - tot / 2;
         text(ctx, sW, xx, ly, 26, C.goal, 'left');
         xx += wW + 18;
         text(ctx, sA, xx, ly + 1, 13, C.textDim, 'left');
         xx += wA + 16;
         keycap(ctx, '空白', xx + kwN / 2, ly, 20, { minW: 38 });
-        text(ctx, '下一關', xx + kwN + 6, ly, 16, C.text, 'left');
+        text(ctx, nextS, xx + kwN + 6, ly, 16, C.text, 'left');
       } else if (phase === 'lose') {
         ctx.fillStyle = 'rgba(6,8,14,0.78)';
-        ctx.fillRect(VX, HUD_H, VW, H - HUD_H);
+        ctx.fillRect(0, HUD_H, W, H - HUD_H);
         text(ctx, '失敗', CX, 320, 64, C.danger);
         text(ctx, '三個人都沒摸到旗子', CX, 392, 22, C.text);
         keyPrompt(ctx, '再試一次', CX, 450, 26, 22);
@@ -1697,7 +1397,7 @@
       ctx.fillStyle = 'rgba(10,14,24,0.82)';
       ctx.fill();
       ctx.lineWidth = 1.5;
-      ctx.strokeStyle = muted ? 'rgba(255,77,77,0.55)' : 'rgba(255,255,255,0.22)';
+      ctx.strokeStyle = muted ? 'rgba(138,147,173,0.3)' : 'rgba(255,255,255,0.22)';
       ctx.stroke();
       speaker(ctx, x + 22, y + 15, muted);
       keycap(ctx, 'M', x + 11, y + 30, 15, { fs: 11 });
@@ -1710,7 +1410,7 @@
       var sel = s.sel === 1 ? 1 : 0;
       ctx.save();
       ctx.fillStyle = 'rgba(6,8,14,0.66)';
-      ctx.fillRect(VX, 0, VW, H);
+      ctx.fillRect(0, 0, W, H);
       var PX = 460, PY = 240, PW = 360, PH = 240;
       rr(ctx, PX + 1, PY + 1, PW - 2, PH - 2, 16);
       ctx.fillStyle = 'rgba(14,18,32,0.97)';
@@ -1844,9 +1544,18 @@
         by = place === 'above' ? ay - tail - bh : ay + tail;
       }
       bx = Math.max(12, Math.min(W - 12 - bw, bx));
-      // 節奏燈泡泡放下方時(第 7 關 chain / slow): 右緣 ≤ 畫面 x 510, 不壓頂層右段等著的角色
-      if (place === 'below' && (stage === 'chain' || stage === 'slow')) bx = Math.max(12, Math.min(bx, 510 - bw));
       by = Math.max(56, Math.min(708 - bh, by));
+      // 避開聲音開關圖示(avoid, 畫面座標): 泡泡本體排好、夾進畫布後若和 avoid 重疊才推開;
+      // above / below → 水平往左推到右緣 = avoid.x − 6; left / right → 往下推到頂緣 = avoid 下緣 + 6。
+      // 尾巴尖端仍在 (ax, ay), 根部由 tutBubblePath 夾在近端邊上、離泡泡角 ≥ 12(可以斜)
+      var av = s.avoid;
+      if (av && typeof av === 'object') {
+        var avx = num(av.x, 0), avy = num(av.y, 0), avw = len(av.w, 0), avh = len(av.h, 0);
+        if (avw > 0 && avh > 0 && bx < avx + avw && bx + bw > avx && by < avy + avh && by + bh > avy) {
+          if (place === 'left' || place === 'right') by = Math.min(708 - bh, avy + avh + 6);
+          else bx = Math.max(12, avx - 6 - bw);
+        }
+      }
       var bcx = bx + bw / 2, bcy = by + bh / 2;
 
       var fade = done > 0.55 ? 1 - (done - 0.55) / 0.45 : 1;
@@ -1959,7 +1668,7 @@
       ctx.restore();
       // 右: 第幾關 + 關名
       var TX = IX + IW + 18;
-      text(ctx, '第 ' + Math.round(num(s.level, 1)) + ' / ' + Math.round(num(s.levelCount, 7)) + ' 關', TX, Y + 30, 18, C.textDim, 'left');
+      text(ctx, '第 ' + Math.round(num(s.level, 1)) + ' / ' + Math.round(num(s.levelCount, 5)) + ' 關', TX, Y + 30, 18, C.textDim, 'left');
       var title = typeof s.title === 'string' ? s.title : '';
       var maxTW = X + BW - 14 - TX;
       var fs = 34;
@@ -1971,11 +1680,11 @@
     drawUnlockPage: function (ctx, s) {
       s = s || {};
       var A = Art;
-      var hook = s.ability !== 'whistle';          // 表外值畫成鉤爪
+      // ability 本輪只有 'hook'; 表外值一樣畫鉤爪
       ctx.save();
       bgFill(ctx);
       text(ctx, '解鎖', CX, 104, 26, C.textDim);
-      text(ctx, hook ? '鉤爪' : '起跑哨', CX, 168, 60, hook ? C.hook : C.whistle);
+      text(ctx, '鉤爪', CX, 168, 60, C.hook);
       var PX = 400, PY = 222, PW = 480, PH = 390;
       rr(ctx, PX, PY, PW, PH, 18);
       ctx.fillStyle = 'rgba(8,12,22,0.55)';
@@ -1987,17 +1696,13 @@
       rr(ctx, PX, PY, PW, PH, 18);
       ctx.clip();
       ctx.translate(CX, PY + PH / 2);
-      if (hook) {
+      {
         // 角色射出、鉤住半空中的幽靈, 鉤索拉直(射出後在空中 → 幽靈不畫可鉤框)
         ctx.scale(3.2, 3.2);
         A.drawPlatform(ctx, { x: -56, y: 36, w: 112, h: 12, solid: false });
         A.drawGhost(ctx, { x: 14, y: -46, facing: 1, state: 'air', gen: 1, hookable: false, hookAir: true });
         A.drawHook(ctx, { x1: -20, y1: 2, x2: 24, y2: -32 });
         A.drawPlayer(ctx, { x: -30, y: -12, facing: 1, state: 'launch', gen: 2 });
-      } else {
-        ctx.scale(4.4, 4.4);
-        A.drawWhistleRing(ctx, { cx: 0, cy: 0, t: 0.45 });
-        whistleIcon(ctx);
       }
       ctx.restore();
       keyPrompt(ctx, '繼續', CX, 664, 28, 24);

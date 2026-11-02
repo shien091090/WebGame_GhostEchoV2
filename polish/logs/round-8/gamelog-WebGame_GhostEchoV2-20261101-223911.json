@@ -1,0 +1,228 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-8",
+ "sessionStart": "2026-11-01T22:33:21+08:00",
+ "downloadedAt": "2026-11-01T22:39:11+08:00",
+ "reason": "win",
+ "events": [
+  {
+   "type": "unlock",
+   "t": 334291,
+   "level": 5,
+   "ability": "whistle"
+  },
+  {
+   "type": "level_start",
+   "t": 336659,
+   "level": 6,
+   "attempt": 1,
+   "cause": "first"
+  },
+  {
+   "type": "gen_start",
+   "t": 336659,
+   "level": 6,
+   "attempt": 1,
+   "gen": 1
+  },
+  {
+   "type": "button",
+   "t": 337183,
+   "level": 6,
+   "attempt": 1,
+   "gen": 1,
+   "by": "player"
+  },
+  {
+   "type": "tutorial_done",
+   "t": 337183,
+   "level": 6,
+   "stage": "button",
+   "attempt": 1,
+   "gen": 1,
+   "showTime": 0,
+   "auto": true,
+   "x": 33,
+   "y": 428
+  },
+  {
+   "type": "crusher_fall",
+   "t": 338884,
+   "level": 6,
+   "attempt": 1,
+   "gen": 1,
+   "upTime": 1700,
+   "playerX": 157
+  },
+  {
+   "type": "gen_end",
+   "t": 343613,
+   "level": 6,
+   "attempt": 1,
+   "gen": 1,
+   "cause": "spike",
+   "x": 13,
+   "y": 428,
+   "duration": 419,
+   "minFeetY": 456,
+   "hooksUsed": 0,
+   "whistles": 0,
+   "timeLeft": 53
+  },
+  {
+   "type": "gen_start",
+   "t": 344218,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2
+  },
+  {
+   "type": "tutorial_show",
+   "t": 344218,
+   "level": 6,
+   "stage": "whistle",
+   "attempt": 1,
+   "gen": 2,
+   "count": 1
+  },
+  {
+   "type": "button",
+   "t": 344231,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "player"
+  },
+  {
+   "type": "button",
+   "t": 344745,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 345718,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "x": 327,
+   "y": 428,
+   "ghostFrame": 89,
+   "crusherLeft": 750,
+   "cue": "ok",
+   "tb": 32
+  },
+  {
+   "type": "button",
+   "t": 346245,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "tutorial_done",
+   "t": 346245,
+   "level": 6,
+   "stage": "whistle",
+   "attempt": 1,
+   "gen": 2,
+   "showTime": 2028,
+   "auto": false,
+   "x": 437,
+   "y": 428
+  },
+  {
+   "type": "whistle",
+   "t": 346766,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "x": 537,
+   "y": 428,
+   "ghostFrame": 62,
+   "crusherLeft": 1200,
+   "cue": "ok",
+   "tb": 32
+  },
+  {
+   "type": "button",
+   "t": 347301,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 347849,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "x": 640,
+   "y": 428,
+   "ghostFrame": 64,
+   "crusherLeft": 1167,
+   "cue": "ok",
+   "tb": 32
+  },
+  {
+   "type": "button",
+   "t": 348384,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "whistle",
+   "t": 348745,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "x": 640,
+   "y": 428,
+   "ghostFrame": 53,
+   "crusherLeft": 1350,
+   "cue": "ok",
+   "tb": 32
+  },
+  {
+   "type": "button",
+   "t": 349280,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "by": "ghost"
+  },
+  {
+   "type": "gen_end",
+   "t": 349933,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "cause": "win",
+   "x": 763,
+   "y": 428,
+   "duration": 344,
+   "minFeetY": 456,
+   "hooksUsed": 0,
+   "whistles": 4,
+   "timeLeft": 54.3
+  },
+  {
+   "type": "level_win",
+   "t": 349933,
+   "level": 6,
+   "attempt": 1,
+   "gen": 2,
+   "attemptTime": 13274,
+   "levelTime": 13274,
+   "fails": 0,
+   "restarts": 0,
+   "pauseTime": 0
+  }
+ ]
+}
