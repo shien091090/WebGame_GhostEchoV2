@@ -715,6 +715,11 @@
   // 避開聲音開關圖示(含觸控模式的選單鍵位置): 圖示 (1228, 56, 40, 40) 外擴 6
   var TUT_AVOID = { x: 1222, y: 50, w: 52, h: 52 };
   // 觸控模式: 選單鍵(touch.js 的功能鍵, 圓心 (1240, 92)、半徑 30)外擴
+  // 觸控模式的方向鍵外接框(設計座標), 教學泡泡要避開; 數字照 touch.js 的 LAYOUT.dpad(外圈半徑 124、離底 80、離外緣 max(黑塊寬/2, 140))
+  function touchDpadBox() {
+    var sw = (CW - 1280) / 2, ro = 124, cx = Math.max(sw / 2, ro + 16) - sw, cy = CH - ro - 80;
+    return { x: cx - ro, y: cy - ro, w: ro * 2, h: ro * 2 };
+  }
   var TUT_AVOID_TOUCH = { x: 1204, y: 50, w: 76, h: 80 };
   T_MAIN.concat(T_COND).forEach(function (id) { T.st[id] = { done: false, skipped: false, live: false, count: 0 }; });
 
@@ -896,15 +901,16 @@
       if (a.alt) { ax = a.alt.x * ZOOM; ay = a.alt.y * ZOOM; }
     }
     // 觸控模式: 提到按鍵的字換成按鈕名; 手機沒有 Esc, 「卡住了」改指向右上角的選單鍵(位置同聲音圖示, 避讓框加大涵蓋它)
-    var tx = d.text, tk = d.keys.slice(), av = TUT_AVOID;
+    var tx = d.text, tk = d.keys.slice(), av = TUT_AVOID, av2 = null;
     if (window.PVDX && PVDX.on) {
       tx = tx.replace('按 Z', '按 A');
       if (id === 'stuck') { tx = '卡住了? 點選單重來'; tk = []; }
       av = TUT_AVOID_TOUCH;
+      av2 = touchDpadBox();
     }
     return { stage: id, text: tx, keys: tk, pressed: pressed.slice(0, tk.length), ax: ax, ay: ay, place: place, tail: a.tail,
       pop: pop, finishing: !!fx, done: fx ? done : 0, mark: mark,
-      avoid: { x: av.x, y: av.y, w: av.w, h: av.h } };
+      avoid: { x: av.x, y: av.y, w: av.w, h: av.h }, avoid2: av2 };
   }
 
   function render(ctx) {

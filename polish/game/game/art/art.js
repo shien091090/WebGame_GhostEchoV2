@@ -1623,6 +1623,14 @@
           else bx = Math.max(12, avx - 6 - bw);
         }
       }
+      // 觸控模式另避開方向鍵(avoid2, 畫面座標): 重疊時整個泡泡往右推到方向鍵右緣 + 6, 尾巴尖端不動
+      var av2 = s.avoid2;
+      if (av2 && typeof av2 === 'object') {
+        var a2x = num(av2.x, 0), a2y = num(av2.y, 0), a2w = len(av2.w, 0), a2h = len(av2.h, 0);
+        if (a2w > 0 && a2h > 0 && bx < a2x + a2w && bx + bw > a2x && by < a2y + a2h && by + bh > a2y) {
+          bx = Math.min(W - 12 - bw, a2x + a2w + 6);
+        }
+      }
       var bcx = bx + bw / 2, bcy = by + bh / 2;
 
       var fade = done > 0.55 ? 1 - (done - 0.55) / 0.45 : 1;
