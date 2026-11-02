@@ -1,4 +1,4 @@
-/* 幽影接力 打磨版第 9 輪 — 16:9 橫式 1280×720, 五關; 邏輯 + 嵌入式新手教學 + 暫停選單 + 呼叫 Art / Sound */
+/* 接力吉尼(Jelly Jinni) 打磨版第 9 輪 — 16:9 橫式 1280×720, 五關; 邏輯 + 嵌入式新手教學 + 暫停選單 + 呼叫 Art / Sound */
 (function () {
   'use strict';
 
@@ -17,6 +17,8 @@
   var SS_W = 100, SS_LAND_W = 40, SS_LAUNCH_X = 60;
   var CW = (window.Art && Art.canvas && Art.canvas.width) || 1280;
   var CH = (window.Art && Art.canvas && Art.canvas.height) || 720;
+  // 設計區 1280 × 720 置中: 畫面寬(CW)大於 1280 只發生在觸控裝置, 兩側由 touch.js 塗黑
+  var OX = (CW - 1280) / 2;
   // 世界 853⅓ × 480, 放大 1.5 倍; 畫面座標 = 世界座標 × ZOOM
   var ZOOM = 1.5, WW = 1280 / 1.5, WH = 480;
   var SND_ICON_PLAY = { x: 1228, y: 56 }, SND_ICON_MENU = { x: 1228, y: 12 };
@@ -296,6 +298,7 @@
       S.fails++;
       emit('level_lose', { attempt: S.attempt, attemptTime: Math.round(nowMs() - S.attemptT0), fails: S.fails });
       download('lose');
+      if (window.PVDX) PVDX.finish();
     }
   }
   // 暫停選單「重來」(整關重來的唯一入口); 呼叫時選單已關閉、pause_close 已記
@@ -339,6 +342,7 @@
     emit('level_win', { attempt: S.attempt, gen: S.gen, attemptTime: Math.round(nowMs() - S.attemptT0),
       levelTime: Math.round(nowMs() - S.levelStartT), fails: S.fails, restarts: S.restarts, pauseTime: S.pauseLevelMs });
     download('win');
+    if (window.PVDX) PVDX.finish();
     S.banner = -1;
     var recs = S.recs.slice(0, S.gen);
     S.replay = { recs: recs, G: S.gen, f: 0, prev: [], W: newWorld(S.level), L: recs[S.gen - 1].length };
@@ -773,6 +777,8 @@
   var T_PRE = { die: 'move', head: 'die', hookFire: 'hookAim' };
   // 避開聲音開關圖示(含觸控模式的選單鍵位置): 圖示 (1228, 56, 40, 40) 外擴 6
   var TUT_AVOID = { x: 1222, y: 50, w: 52, h: 52 };
+  // 觸控模式: 選單鍵(touch.js 的功能鍵, 圓心 (1240, 92)、半徑 30)外擴
+  var TUT_AVOID_TOUCH = { x: 1204, y: 50, w: 76, h: 80 };
   T_MAIN.concat(T_COND).forEach(function (id) { T.st[id] = { done: false, skipped: false, live: false, count: 0, firstMs: null }; });
 
   // 錨點(世界座標): { x, y, tail(畫面 px), place(可省略), alt(上方放不下時改下方用的錨點) }
@@ -960,20 +966,31 @@
       place = 'below';
       if (a.alt) { ax = a.alt.x * ZOOM; ay = a.alt.y * ZOOM; }
     }
-    return { stage: id, text: d.text, keys: d.keys.slice(), pressed: pressed, ax: ax, ay: ay, place: place, tail: a.tail,
+    // 觸控模式: 提到按鍵的字換成按鈕名; 手機沒有 Esc, 「卡住了」改指向右上角的選單鍵(位置同聲音圖示, 避讓框加大涵蓋它)
+    var tx = d.text, tk = d.keys.slice(), av = TUT_AVOID;
+    if (window.PVDX && PVDX.on) {
+      tx = tx.replace('按 Z', '按 A');
+      if (id === 'stuck') { tx = '卡住了? 點選單重來'; tk = []; }
+      av = TUT_AVOID_TOUCH;
+    }
+    return { stage: id, text: tx, keys: tk, pressed: pressed.slice(0, tk.length), ax: ax, ay: ay, place: place, tail: a.tail,
       pop: pop, finishing: !!fx, done: fx ? done : 0, mark: mark,
-      avoid: { x: TUT_AVOID.x, y: TUT_AVOID.y, w: TUT_AVOID.w, h: TUT_AVOID.h } };
+      avoid: { x: av.x, y: av.y, w: av.w, h: av.h } };
   }
 
   function render(ctx) {
     ctx.clearRect(0, 0, CW, CH);
-    if (S.screen === 'title') Art.drawTitle(ctx, { t: S.titleT });
-    else if (S.screen === 'unlock') Art.drawUnlockPage(ctx, { ability: S.unlockAbility });
-    else if (S.screen === 'ending') Art.drawEnding(ctx, {});
-    else if (S.screen === 'play') {
-      if (S.phase === 'win' && S.replay) drawReplay(ctx); else drawPlay(ctx);
-    }
-    drawSoundIconFor(ctx);
+    ctx.save();
+    ctx.translate(OX, 0);   // 設計區置中, 其餘座標維持 1280 設計值
+    try {
+      if (S.screen === 'title') Art.drawTitle(ctx, { t: S.titleT });
+      else if (S.screen === 'unlock') Art.drawUnlockPage(ctx, { ability: S.unlockAbility });
+      else if (S.screen === 'ending') Art.drawEnding(ctx, {});
+      else if (S.screen === 'play') {
+        if (S.phase === 'win' && S.replay) drawReplay(ctx); else drawPlay(ctx);
+      }
+      drawSoundIconFor(ctx);
+    } finally { ctx.restore(); }
   }
 
   // ===== 輸入(只有鍵盤) =====
@@ -997,6 +1014,7 @@
           setScreen('ending'); music('ending');
           emit('game_complete', { totalTime: Math.round(nowMs() - t0) });
           download('complete');   // 批次最尾端
+          if (window.PVDX) PVDX.finish();
         } else { snd('uiPage'); S.level++; startLevel('first'); }
       } else if (S.phase === 'lose') {
         snd('uiPage');
@@ -1021,52 +1039,65 @@
     } catch (e) { console.error(e); }
     emit('mute', { muted: S.muted });
   }
-  var GAME_KEYS = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1, Space: 1, KeyZ: 1, KeyX: 1, KeyM: 1, Escape: 1 };
+  // 鍵盤與觸控共用同一條輸入路徑: 鍵名 left / right / up / down / space / z / x / esc / m
+  var CODE2NAME = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', Space: 'space', KeyZ: 'z', KeyX: 'x', KeyM: 'm', Escape: 'esc' };
   function refreshJump() { keys.jump = jumpDown.ArrowUp; if (keys.jump) cmd.jump = true; }
-  function onKeyDown(e) {
-    if (GAME_KEYS[e.code]) e.preventDefault();
-    if (e.repeat) return;
+  function inputDown(k) {
+    if (window.PVDX && PVDX.paused) return;
     if (!firstInput) {
       firstInput = true;
       try { if (window.Sound && Sound.init) Sound.init(); } catch (er) { console.error(er); }
     }
-    var c = e.code;
-    if (c === 'KeyM') { toggleMute(); return; }
+    if (k === 'm') { toggleMute(); return; }
     // --- 暫停選單: 只有 Esc / ↑ ↓ / 空白 / M 有作用 ---
     if (S.paused) {
-      if (c === 'Escape') closePause('resume');
-      else if (c === 'ArrowUp') { if (S.pauseSel > 0) { S.pauseSel = 0; snd('menuMove'); } }
-      else if (c === 'ArrowDown') { if (S.pauseSel < 1) { S.pauseSel = 1; snd('menuMove'); } }
-      else if (c === 'Space') closePause(S.pauseSel === 0 ? 'resume' : 'restart');
+      if (k === 'esc') closePause('resume');
+      else if (k === 'up') { if (S.pauseSel > 0) { S.pauseSel = 0; snd('menuMove'); } }
+      else if (k === 'down') { if (S.pauseSel < 1) { S.pauseSel = 1; snd('menuMove'); } }
+      else if (k === 'space') closePause(S.pauseSel === 0 ? 'resume' : 'restart');
       return;
     }
-    if (c === 'Escape') { openPause(); return; }   // 只有遊玩中(含瞄準)有效
-    if (c === 'Space') {
+    if (k === 'esc') { openPause(); return; }   // 只有遊玩中(含瞄準)有效
+    if (k === 'space') {
       // 遊玩中空白鍵沒有作用; 其他畫面: 確認 / 繼續
       if (!(S.screen === 'play' && (S.phase === 'play' || S.phase === 'dying'))) onSpace();
       return;
     }
-    if (c === 'ArrowUp') { if (S.screen === 'play' && S.phase === 'play' && !S.aiming) { jumpDown.ArrowUp = true; refreshJump(); tKey('up'); } return; }
-    if (c === 'ArrowLeft') {
+    if (k === 'up') { if (S.screen === 'play' && S.phase === 'play' && !S.aiming) { jumpDown.ArrowUp = true; refreshJump(); tKey('up'); } return; }
+    if (k === 'left') {
       keys.left = true; tKey('left');
       return;
     }
-    if (c === 'ArrowRight') {
+    if (k === 'right') {
       keys.right = true; tKey('right');
       return;
     }
     if (S.screen !== 'play') return;
-    if (c === 'KeyZ') { if (S.phase === 'play') cmd.z = true; }
-    else if (c === 'KeyX') { if (S.phase === 'play') cmd.x = true; }
+    if (k === 'z') { if (S.phase === 'play') cmd.z = true; }
+    else if (k === 'x') { if (S.phase === 'play') cmd.x = true; }
+  }
+  function inputUp(k) {
+    if (k === 'left') keys.left = false;
+    else if (k === 'right') keys.right = false;
+    else if (k === 'up') { jumpDown.ArrowUp = false; refreshJump(); }
+  }
+  function inputReset() { keys.left = keys.right = false; jumpDown.ArrowUp = false; keys.jump = false; }
+  window.inputDown = inputDown; window.inputUp = inputUp; window.inputReset = inputReset;
+  // 觸控層(touch.js)依目前畫面決定要顯示哪些按鈕、暫停時還原靜音用
+  window.jjState = function () { return { screen: S.screen, phase: S.phase, paused: S.paused, aiming: S.aiming, level: S.level, muted: S.muted }; };
+  function onKeyDown(e) {
+    var n = CODE2NAME[e.code];
+    if (!n) return;
+    e.preventDefault();
+    if (e.repeat) return;
+    inputDown(n);
   }
   function onKeyUp(e) {
-    if (GAME_KEYS[e.code]) e.preventDefault();
-    var c = e.code;
-    if (c === 'ArrowLeft') keys.left = false;
-    else if (c === 'ArrowRight') keys.right = false;
-    else if (c === 'ArrowUp') { jumpDown.ArrowUp = false; refreshJump(); }
+    var n = CODE2NAME[e.code];
+    if (!n) return;
+    e.preventDefault();
+    inputUp(n);
   }
-  function onBlur() { keys.left = keys.right = false; jumpDown.ArrowUp = false; keys.jump = false; }
 
   // ===== 啟動 =====
   var canvas, ctx;
@@ -1090,12 +1121,15 @@
       last = ts;
       if (dt > 1 / 30) dt = 1 / 30;
       if (dt < 0) dt = 0;
-      if (S.screen === 'title') S.titleT += dt;
-      acc += dt;
-      var n = 0;
-      while (acc >= DT && n < 4) { step(); acc -= DT; n++; }
-      if (n === 4) acc = 0;
+      if (!(window.PVDX && PVDX.paused)) {
+        if (S.screen === 'title') S.titleT += dt;
+        acc += dt;
+        var n = 0;
+        while (acc >= DT && n < 4) { step(); acc -= DT; n++; }
+        if (n === 4) acc = 0;
+      }
       render(ctx);
+      if (window.PVDX) PVDX.draw(ctx);
     } catch (e) { console.error(e); }
   }
   function boot() {
@@ -1106,7 +1140,7 @@
     window.addEventListener('orientationchange', resize);
     window.addEventListener('keydown', function (e) { onKeyDown(e); });
     window.addEventListener('keyup', function (e) { onKeyUp(e); });
-    window.addEventListener('blur', onBlur);
+    window.addEventListener('blur', inputReset);
     emit('session_start', { levelCount: LEVEL_COUNT });
     music('title');
     requestAnimationFrame(frame);

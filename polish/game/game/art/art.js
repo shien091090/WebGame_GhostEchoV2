@@ -1,4 +1,4 @@
-// 幽影接力(打磨版) — 美術繪圖模組(全 Canvas 2D 幾何, 無外部資源)
+// 接力吉尼(Jelly Jinni)(打磨版) — 美術繪圖模組(全 Canvas 2D 幾何, 無外部資源)
 // 契約: 依 interface.json; 每個函式自己 save / restore。
 // polish-7: 直式 720×1280 → 橫式 1280×720, 全部物件尺寸 × 0.5; 新增 drawSoundIcon、drawPauseMenu;
 //           空白鍵取代 C、Esc 取代 R; 教學泡泡加 tail / finishing; 翹翹板加 swinging; 壓板燈位置由遊戲端給(lx, ly, keySide)。
@@ -14,6 +14,32 @@
   // ---------- 設計座標常數(全畫面類函式只引用這些) ----------
   var W = 1280, H = 720, HUD_H = 48;   // 畫面座標; 整面的東西一律畫 0~1280
   var CX = W / 2;
+  var GAME_NAME = '接力吉尼(Jelly Jinni)';
+
+  // ---------- 畫面寬度依裝置(電腦 1280; 觸控裝置照可視區長寬比, 夾 1280~1680; 設計區 1280 由 game.js 置中) ----------
+  function pickWidth() {
+    var w = 1280;
+    try {
+      var q = /[?&]w=([0-9]+)/.exec(location.search);
+      var mm = function (s) { return !!(window.matchMedia && matchMedia(s).matches); };
+      var touch = /[?&]touch=1(&|$)/.test(location.search) || mm('(pointer: coarse)') ||
+        (((navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window) && !mm('(hover: hover)'));
+      if (q) w = +q[1];
+      else if (touch) {
+        var a = window.screen || {}, sw = a.width || 0, sh = a.height || 0, iw = window.innerWidth || 0, ih = window.innerHeight || 0;
+        var r = sw > 0 && sh > 0 ? Math.max(sw, sh) / Math.min(sw, sh) : 0;
+        if (iw > ih && ih > 0) r = iw / ih;
+        if (r > 0) w = 720 * r;
+      }
+    } catch (e) { /* 取不到就用 1280 */ }
+    return Math.round(Math.max(1280, Math.min(1680, w || 1280)) / 2) * 2;
+  }
+  var VW = pickWidth();
+  try { document.documentElement.style.setProperty('--cw', String(VW)); } catch (e) { /* 略過 */ }
+
+  // 觸控模式(window.PVDX.on, touch.js 在 art.js 之後才載入, 所以每次畫的時候才查): 字與小圖示放大到手機可讀
+  var TOUCH_FS = 21, TOUCH_ICON = 30;
+  function touchOn() { return !!(window.PVDX && PVDX.on); }
   // 世界座標(世界層函式只引用這些)
   var WS = 1.5;                    // RD 的放大倍率(美術不自己乘, 只用來換算範圍)
   var WW = 853.3333, WH = 480, CEIL = 32, GROUND = 456;
@@ -103,6 +129,8 @@
   // 帶深色描邊的文字(遊戲世界與 HUD 共用)
   // sw: 描邊線寬(省略 = 畫面層預設; 世界層小字傳約 2.2, 露在字外約 1.1 世界單位)
   function text(ctx, s, x, y, size, color, align, weight, sw) {
+    // 觸控模式: 畫面層的字(沒傳 sw)至少 21 px; 世界層小字(有傳 sw)由呼叫端整組放大
+    if (sw === undefined && touchOn() && size < TOUCH_FS) size = TOUCH_FS;
     ctx.save();
     ctx.font = (weight || 'bold') + ' ' + size + 'px ' + FONT;
     ctx.textAlign = align || 'center';
@@ -115,25 +143,37 @@
     ctx.fillText(s, x, y);
     ctx.restore();
   }
-  function textW(ctx, s, size, weight) {
+  function measure(ctx, s, size, weight) {
     ctx.save();
     ctx.font = (weight || 'bold') + ' ' + size + 'px ' + FONT;
     var w = ctx.measureText(s).width;
     ctx.restore();
     return w;
   }
+  function textW(ctx, s, size, weight) {
+    if (touchOn() && size < TOUCH_FS) size = TOUCH_FS;
+    return measure(ctx, s, size, weight);
+  }
 
   // 鍵帽: (x, y) 為中心, h 為高; 回傳寬度。o: { fs 字級, minW, fill, edge, frame 系統框色, k 線寬比例(世界層傳 WK) }
+  // 觸控模式: 畫面層鍵帽(沒傳 k)高至少 30、字至少 20; 世界層鍵帽由呼叫端整組放大
+  function capH(h, o) { return (touchOn() && !o.k && h < TOUCH_ICON) ? TOUCH_ICON : h; }
+  function capFs(h, o) {
+    var fs = o.fs || Math.max(11, Math.round(h * 0.6));
+    if (touchOn() && !o.k && fs < 20) fs = 20;
+    return fs;
+  }
   function keycapW(ctx, label, h, o) {
     o = o || {};
-    var fs = o.fs || Math.max(11, Math.round(h * 0.6));
-    return Math.max(h, o.minW || 0, textW(ctx, label, fs) + h * 0.55);
+    h = capH(h, o);
+    return Math.max(h, o.minW || 0, measure(ctx, label, capFs(h, o)) + h * 0.55);
   }
   function keycap(ctx, label, x, y, h, o) {
     o = o || {};
     var k = o.k || 1;
-    var fs = o.fs || Math.max(11, Math.round(h * 0.6));
     var w = keycapW(ctx, label, h, o);
+    h = capH(h, o);
+    var fs = capFs(h, o);
     ctx.save();
     rr(ctx, x - w / 2, y - h / 2, w, h, Math.max(3 * k, h * 0.24));
     ctx.fillStyle = o.fill || '#e9ecf5';
@@ -222,7 +262,17 @@
 
   // ---------- 瞄準按鍵提示「[Z] 射出 / [X] 取消」(世界座標) ----------
   var HINT_W = 82, HINT_H = 17;
-  function aimHint(ctx, cx, cy) {
+  // K: 放大倍率(觸控模式 1.9, 讓字 ≥ 14 世界單位 = 21 px); 以 (cx, cy) 為中心整組放大
+  function aimHint(ctx, cx, cy, K) {
+    K = K || 1;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(K, K);
+    ctx.translate(-cx, -cy);
+    aimHint0(ctx, cx, cy);
+    ctx.restore();
+  }
+  function aimHint0(ctx, cx, cy) {
     var x0 = cx - HINT_W / 2;
     ctx.save();
     rr(ctx, x0, cy - HINT_H / 2, HINT_W, HINT_H, 4);
@@ -250,7 +300,7 @@
   }
 
   function chestNumber(ctx, gen, fill) {
-    ctx.font = 'bold 10px ' + FONT;            // 世界單位 10(≥ 7.5), 放大後 15 px
+    ctx.font = 'bold ' + (touchOn() ? 14 : 10) + 'px ' + FONT;   // 世界單位 10(≥ 7.5), 放大後 15 px; 觸控模式 14(21 px)
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
@@ -487,9 +537,10 @@
     var pulse = warn && tl > 0 ? Math.max(0, (frac - 0.75) / 0.25) : 0;
     ctx.save();
     // 時鐘圖示
-    var ccx = x0 + 10, ccy = HUD_LY;
+    var TT = touchOn(), cr = TT ? 11 : 8, off = TT ? 34 : 24;   // 觸控模式: 時鐘圖示放大、數字右移、量條縮短
+    var ccx = x0 + (TT ? 14 : 10), ccy = HUD_LY;
     ctx.beginPath();
-    ctx.arc(ccx, ccy, 8, 0, Math.PI * 2);
+    ctx.arc(ccx, ccy, cr, 0, Math.PI * 2);
     ctx.lineWidth = 3.5;
     ctx.strokeStyle = STROKE;
     ctx.stroke();
@@ -500,20 +551,20 @@
     ctx.lineWidth = 1.6;
     ctx.beginPath();
     var ang = -Math.PI / 2 + (1 - tl / timeMax) * Math.PI * 2;
-    ctx.moveTo(ccx, ccy); ctx.lineTo(ccx, ccy - 5);
-    ctx.moveTo(ccx, ccy); ctx.lineTo(ccx + Math.cos(ang) * 4.5, ccy + Math.sin(ang) * 4.5);
+    ctx.moveTo(ccx, ccy); ctx.lineTo(ccx, ccy - cr * 0.62);
+    ctx.moveTo(ccx, ccy); ctx.lineTo(ccx + Math.cos(ang) * cr * 0.56, ccy + Math.sin(ang) * cr * 0.56);
     ctx.stroke();
     // 數字
     ctx.save();
-    ctx.translate(x0 + 24, HUD_LY + 1);
+    ctx.translate(x0 + off, HUD_LY + 1);
     var sc = 1 + 0.15 * pulse;
     ctx.scale(sc, sc);
     text(ctx, String(secs), 0, 0, 24, col, 'left');
     ctx.restore();
     var nw = textW(ctx, String(secs), 24);
-    text(ctx, '秒', x0 + 24 + nw + 4, HUD_LY + 3, 13, warn ? C.danger : C.textDim, 'left');
+    text(ctx, '秒', x0 + off + nw + 4, HUD_LY + 3, 13, warn ? C.danger : C.textDim, 'left');
     // 量條
-    var bw = 120, bh = 8, bx = x0 + TIMER_W - bw, by = HUD_LY - bh / 2 + 1;
+    var bw = TT ? 84 : 120, bh = 8, bx = x0 + TIMER_W - bw, by = HUD_LY - bh / 2 + 1;
     rr(ctx, bx - 1.5, by - 1.5, bw + 3, bh + 3, 3);
     ctx.fillStyle = 'rgba(8,10,18,0.95)';
     ctx.fill();
@@ -545,6 +596,11 @@
     keyOn: '#c9f7de'      // 已按過的鍵帽底
   };
   var TUT_PAD = 14, TUT_BH = 52, TUT_KEY = 26, TUT_KEY_FS = 14, TUT_FONT = 16, TUT_MAXW = 300;
+  // 觸控模式: 泡泡字 21、鍵帽 30(drawTutorial 開頭呼叫 tutLayout 依模式設定)
+  function tutLayout() {
+    var T = touchOn();
+    TUT_FONT = T ? 21 : 16; TUT_KEY = T ? 30 : 26; TUT_KEY_FS = T ? 20 : 14; TUT_MAXW = T ? 340 : 300;
+  }
   var TUT_KEYS = ['left', 'right', 'jump', 'Z', 'esc'];
   var tutKeySeen = {};
 
@@ -730,7 +786,7 @@
   }
 
   var Art = {
-    canvas: { width: W, height: H },
+    canvas: { width: VW, height: H },
     palette: C,
 
     drawBackground: function (ctx, s) {
@@ -1159,16 +1215,20 @@
         // 頂緣不壓進 HUD(世界 y < 32)時才照規則放; 幽靈貼天花板時往下夾
         var air = s.hookAir !== false;
         var tw2 = 37, th2 = 10.5;                 // 「↑等它跳」小牌
-        var right = x + 24 + (air ? 14 : tw2) <= WW - 2;
-        var zx = right ? x + 31 : x - 11;
-        var zy = Math.max(CEIL + 7.5, y - 7.5);
-        keycap(ctx, 'Z', zx, zy, WKEY_H, wKeyOpts(C.hook));
+        var HK = touchOn() ? 1.9 : 1;             // 觸控模式整組放大(鍵帽 ≥ 20 世界單位、字 ≥ 14)
+        var right = x + 24 + (air ? 14 * HK : tw2 * HK) <= WW - 2;
+        var zx = right ? x + 25.5 + 5.5 * HK : x - 5.5 - 5.5 * HK;
+        var zy = Math.max(CEIL + 5.5 * HK + 2, y - 7.5);
+        keycap(ctx, 'Z', zx, zy, WKEY_H * HK, { fs: WKEY_FS * HK, k: WK, frame: C.hook });
         if (!air) {
           // 幽靈站在地上: Z 鍵帽正下方小字「↑等它跳」, 往遠離幽靈的方向對齊
-          var bx0 = right ? zx - 6.5 : zx + 6.5 - tw2;
-          bx0 = Math.max(2, Math.min(WW - tw2 - 2, bx0));
-          var by0 = zy + 7.5;
+          var bx0 = right ? zx - 6.5 * HK : zx + 6.5 * HK - tw2 * HK;
+          bx0 = Math.max(2, Math.min(WW - tw2 * HK - 2, bx0));
+          var by0 = zy + 5.5 * HK + 2;
           ctx.save();
+          ctx.translate(bx0, by0);
+          ctx.scale(HK, HK);
+          bx0 = 0; by0 = 0;
           rr(ctx, bx0, by0, tw2, th2, 2.5);
           ctx.fillStyle = 'rgba(10,14,24,0.88)';
           ctx.fill();
@@ -1187,8 +1247,8 @@
           ctx.moveTo(ax0 - 2, ay0 - 0.3); ctx.lineTo(ax0, ay0 - 3.3); ctx.lineTo(ax0 + 2, ay0 - 0.3);
           ctx.closePath();
           ctx.fill();
-          ctx.restore();
           text(ctx, '等它跳', bx0 + 21, by0 + th2 / 2 + 0.3, 7.5, C.hook, 'center', 'bold', 1.8);
+          ctx.restore();
         }
       }
       ctx.restore();
@@ -1257,18 +1317,19 @@
       // 角色旁按鍵提示: 預設頭頂上方(在蓄力環外); 頂緣 < 37(壓到 HUD)就放腳下;
       // 箭頭朝向提示時往側邊讓開; 左右夾在世界內(邊距 8)
       var hdx = ax - px, hdy = ay - py, hl = Math.hypot(hdx, hdy) || 1;
-      var hy = py - R - 3 - HINT_H / 2;
-      var below = hy - HINT_H / 2 < CEIL + 5;
-      if (below) hy = py + R + 3 + HINT_H / 2;
+      var HK = touchOn() ? 1.9 : 1, hw = HINT_W * HK, hh = HINT_H * HK;   // 觸控模式整組放大
+      var hy = py - R - 3 - hh / 2;
+      var below = hy - hh / 2 < CEIL + 5;
+      if (below) hy = py + R + 3 + hh / 2;
       var hx = px;
       var into = below ? (hdy / hl > 0.2) : (hdy / hl < -0.2);
       if (into) {
         var side = Math.abs(hdx) > 2 ? -Math.sign(hdx) : (px > WW / 2 ? -1 : 1);
-        hx = px + side * (HINT_W / 2 + 6);
+        hx = px + side * (hw / 2 + 6);
       }
-      hx = Math.max(8 + HINT_W / 2, Math.min(WW - 8 - HINT_W / 2, hx));
-      if (hy + HINT_H / 2 > WH - 2) hy = WH - 2 - HINT_H / 2;
-      aimHint(ctx, hx, hy);
+      hx = Math.max(8 + hw / 2, Math.min(WW - 8 - hw / 2, hx));
+      if (hy + hh / 2 > WH - 2) hy = WH - 2 - hh / 2;
+      aimHint(ctx, hx, hy, HK);
       ctx.beginPath();
       ctx.arc(px, py, R, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(166,255,77,0.18)';
@@ -1305,10 +1366,11 @@
       var s2 = '第 ' + gen + ' 代';
       text(ctx, s2, x, ly, 18, C.text, 'left');
       x += textW(ctx, s2, 18) + 12;
+      var dotR = touchOn() ? 8 : 5.5, dotStep = touchOn() ? 22 : 16;   // 觸控模式小圓點放大
       for (i = 1; i <= maxGen; i++) {
-        var dcx = x + 6 + (i - 1) * 16;
+        var dcx = x + dotR + 0.5 + (i - 1) * dotStep;
         ctx.beginPath();
-        ctx.arc(dcx, ly, 5.5, 0, Math.PI * 2);
+        ctx.arc(dcx, ly, dotR, 0, Math.PI * 2);
         if (i === gen) {                         // 現在的你: 奶白實心
           ctx.fillStyle = C.player; ctx.fill();
           ctx.lineWidth = 1.5; ctx.strokeStyle = C.outline; ctx.stroke();
@@ -1447,6 +1509,7 @@
       // 底部提示: [↑][↓] 選擇  [空白] 確定  [Esc] 繼續
       var by = PY + PH - 30, kh = 18;
       var parts = [['k', '↑'], ['k', '↓'], ['t', '選擇'], ['k', '空白'], ['t', '確定'], ['k', 'Esc'], ['t', '繼續']];
+      if (touchOn()) parts = parts.slice(0, 5);   // 手機沒有 Esc 鍵(選單鍵在右上角), 不畫這組提示
       var ws = [], tot = 0, j;
       for (j = 0; j < parts.length; j++) {
         ws[j] = parts[j][0] === 'k' ? keycapW(ctx, parts[j][1], kh, { minW: parts[j][1] === '空白' ? 34 : 0 }) : textW(ctx, parts[j][1], 13);
@@ -1472,8 +1535,11 @@
       ctx.save();
       bgFill(ctx);
       // 遊戲名(y 約 130~210): 本體 + 身後一層淡藍殘影(字的裝飾)
-      text(ctx, '幽影接力', CX + 6, 176, 80, 'rgba(168,196,255,0.28)');
-      text(ctx, '幽影接力', CX, 170, 80, C.text);
+      // 名稱較長: 單行, 字級依寬度縮到放得下(最大 72)
+      var nfs = 72;
+      while (nfs > 40 && textW(ctx, GAME_NAME, nfs) > 1100) nfs -= 4;
+      text(ctx, GAME_NAME, CX + 6, 176, nfs, 'rgba(168,196,255,0.28)');
+      text(ctx, GAME_NAME, CX, 170, nfs, C.text);
 
       // 中央小圖: 前一刻的你(1 號幽靈, 身體不透明度 62%)跳起, 現在的你(2 號)站在它頭上一起往上
       ctx.save();
@@ -1505,6 +1571,7 @@
     // ---------- 新手教學泡泡 ----------
     drawTutorial: function (ctx, s) {
       s = s || {};
+      tutLayout();
       var keys = [], pressed = [];
       var rawK = Array.isArray(s.keys) ? s.keys : [], rawP = Array.isArray(s.pressed) ? s.pressed : [];
       var i;

@@ -1,0 +1,11 @@
+{
+ "time": "5–12 分鐘",
+ "time_estimated": false,
+ "name": "接力吉尼(Jelly Jinni)",
+ "code": "jelly-jinni",
+ "intro": "死掉不是結束！和上一代的自己攜手，接力跳躍、破解機關，共同抵達終點吧!",
+ "ratio": "16:9",
+ "ratio_site": true,
+ "mobile_ratio": "16:9-21:9",
+ "touch": true
+}

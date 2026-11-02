@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>接力吉尼 橫幅 A — 三代排排站</title>
+<style>body{margin:0;overflow:hidden;background:#121826}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="1680" height="720"></canvas>
+<script src="../game/art/art.js"></script>
+<script>
+// 橫幅 A: 舞台聚光燈下, 第 1、2 代(幽靈)與現在的你排成一列走向終點旗; 遊戲名在上方置中。
+(function () {
+  var A = window.Art, C = A.palette;
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  var W = 1680, H = 720;
+  var FONT = '"Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif';
+  var NAME = '接力吉尼(Jelly Jinni)';
+
+  function rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  function glow(x, y, r, hex, a) {
+    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgba(hex, a));
+    g.addColorStop(1, rgba(hex, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  function title(s, x, y, maxW, size) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.font = 'bold ' + size + 'px ' + FONT;
+    while (size > 48 && ctx.measureText(s).width > maxW) { size -= 4; ctx.font = 'bold ' + size + 'px ' + FONT; }
+    ctx.lineWidth = size / 5;
+    ctx.strokeStyle = 'rgba(8,10,18,0.95)';
+    ctx.strokeText(s, x + 8, y + 8);
+    ctx.fillStyle = 'rgba(168,196,255,0.45)';
+    ctx.fillText(s, x + 8, y + 8);          // 身後一層淡藍殘影(同開始畫面)
+    ctx.strokeText(s, x, y);
+    ctx.fillStyle = C.text;
+    ctx.fillText(s, x, y);
+    ctx.restore();
+  }
+  function spot(cx, topW, botW, yTop, yBot, a) {
+    var g = ctx.createLinearGradient(0, yTop, 0, yBot);
+    g.addColorStop(0, 'rgba(255,241,208,' + a + ')');
+    g.addColorStop(1, 'rgba(255,241,208,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(cx - topW / 2, yTop);
+    ctx.lineTo(cx + topW / 2, yTop);
+    ctx.lineTo(cx + botW / 2, yBot);
+    ctx.lineTo(cx - botW / 2, yBot);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.save();
+  // 背景: 夜藍漸層 + 淡格線
+  var g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, C.bgTop);
+  g.addColorStop(1, C.bg);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(255,255,255,0.035)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (var gx = 0; gx <= W; gx += 48) { ctx.moveTo(gx, 0); ctx.lineTo(gx, H); }
+  for (var gy = 0; gy <= H; gy += 48) { ctx.moveTo(0, gy); ctx.lineTo(W, gy); }
+  ctx.stroke();
+
+  var GROUND = 606, K = 6;          // 地面頂 y; 角色放大 6 倍(120 × 168)
+  var xs = [600, 800, 1000];        // 三代的左緣
+
+  // 聚光燈(每人一道) + 終點旗金光
+  for (var i = 0; i < xs.length; i++) spot(xs[i] + 60, 70, 260, 0, GROUND, i === 2 ? 0.16 : 0.08);
+  glow(1300, 470, 230, C.goal, 0.28);
+
+  // 地面(滿版)
+  ctx.save();
+  ctx.translate(0, GROUND);
+  ctx.scale(K, K);
+  A.drawPlatform(ctx, { x: 0, y: 0, w: W / K, h: (H - GROUND) / K + 1, solid: true });
+  ctx.restore();
+
+  // 幽靈走過的虛線軌跡(遊戲內畫法), 從左邊地面延伸到第 1 代
+  var seg = [];
+  for (var t = 0; t <= 120; t++) {
+    var px = 440 + t * 1.3, py = (GROUND - 90) - Math.sin(t / 120 * Math.PI) * 110;
+    seg.push({ x: px / K, y: py / K });
+  }
+  ctx.save();
+  ctx.scale(K, K);
+  A.drawGhostPath(ctx, { segments: [seg] });
+  ctx.restore();
+
+  // 腳下影子
+  ctx.fillStyle = 'rgba(0,0,0,0.38)';
+  for (i = 0; i < xs.length; i++) {
+    ctx.beginPath();
+    ctx.ellipse(xs[i] + 60, GROUND + 2, 58, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 三代: 1、2 號幽靈 + 3 號你(往右跑向旗子)
+  function at(x, fn, s) {
+    ctx.save();
+    ctx.translate(x, GROUND - 28 * K);
+    ctx.scale(K, K);
+    fn(ctx, s);
+    ctx.restore();
+  }
+  at(xs[0], A.drawGhost, { x: 0, y: 0, facing: 1, state: 'idle', hookable: false, hookAir: true });
+  at(xs[1], A.drawGhost, { x: 0, y: 0, facing: 1, state: 'run', hookable: false, hookAir: true });
+  at(xs[2], A.drawPlayer, { x: 0, y: 0, facing: 1, state: 'run' });
+
+  // 終點旗(放大 6 倍: 144 × 240, 立在地面)
+  ctx.save();
+  ctx.translate(1250, GROUND - 40 * K);
+  ctx.scale(K, K);
+  A.drawGoal(ctx, { x: 0, y: 0 });
+  ctx.restore();
+
+  // 遊戲名
+  title(NAME, W / 2, 168, 1340, 124);
+  ctx.restore();
+})();
+</script>
+</body>
+</html>

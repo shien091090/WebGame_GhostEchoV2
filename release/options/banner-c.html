@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>接力吉尼 橫幅 C — 一路的殘影</title>
+<style>body{margin:0;overflow:hidden;background:#0e1322}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="1680" height="720"></canvas>
+<script src="../game/art/art.js"></script>
+<script>
+// 橫幅 C: 右側主角大特寫往右上跳, 身後一串由小到大的幽靈殘影沿虛線軌跡連過來(上一代們); 遊戲名在左上兩行。
+(function () {
+  var A = window.Art, C = A.palette;
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  var W = 1680, H = 720;
+  var FONT = '"Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif';
+
+  function rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  function glow(x, y, r, hex, a) {
+    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgba(hex, a));
+    g.addColorStop(1, rgba(hex, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  function line(s, x, y, size, fill, echo) {
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.font = 'bold ' + size + 'px ' + FONT;
+    ctx.lineWidth = size / 5;
+    ctx.strokeStyle = 'rgba(8,10,18,0.95)';
+    if (echo) {
+      ctx.strokeText(s, x + 9, y + 9);
+      ctx.fillStyle = echo;
+      ctx.fillText(s, x + 9, y + 9);
+    }
+    ctx.strokeText(s, x, y);
+    ctx.fillStyle = fill;
+    ctx.fillText(s, x, y);
+    ctx.restore();
+  }
+
+  ctx.save();
+  // 背景: 深夜藍, 右側主角後方大片幽靈藍光
+  var g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, '#1b2440');
+  g.addColorStop(1, '#0e1322');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  glow(1300, 330, 420, C.ghost, 0.26);
+  glow(1300, 330, 200, C.player, 0.16);
+  // 散落的小星點
+  var stars = [[180, 60], [520, 90], [860, 50], [1020, 140], [1560, 80], [1620, 300], [960, 600], [1560, 640], [700, 690], [300, 430], [80, 300], [1100, 680]];
+  ctx.fillStyle = 'rgba(230,238,255,0.5)';
+  for (var i = 0; i < stars.length; i++) {
+    ctx.beginPath();
+    ctx.arc(stars[i][0], stars[i][1], i % 3 ? 2.5 : 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 殘影軌跡: 下方(x 640)沿弧線往右上接到主角; 避開左下角(網站圖示)與左上的遊戲名
+  var pts = [];
+  for (var t = 0; t <= 180; t++) {
+    var p = t / 180;
+    pts.push({ x: 640 + 580 * p, y: 640 - 320 * p - 120 * Math.sin(p * Math.PI) });
+  }
+  ctx.save();
+  ctx.scale(4, 4);
+  var seg = [];
+  for (i = 0; i < pts.length; i++) seg.push({ x: pts[i].x / 4, y: pts[i].y / 4 });
+  A.drawGhostPath(ctx, { segments: [seg] });
+  ctx.restore();
+
+  // 幽靈殘影: 由遠(小、淡)到近(大、濃)
+  var echoes = [[0.08, 3.6, 0.55], [0.32, 5, 0.75], [0.58, 6.6, 0.95]];
+  for (i = 0; i < echoes.length; i++) {
+    var q = pts[Math.round(echoes[i][0] * 180)], k = echoes[i][1];
+    ctx.save();
+    ctx.globalAlpha = echoes[i][2];
+    ctx.translate(q.x - 10 * k, q.y - 14 * k);
+    ctx.scale(k, k);
+    A.drawGhost(ctx, { x: 0, y: 0, facing: 1, state: 'air', hookable: false, hookAir: true });
+    ctx.restore();
+  }
+
+  // 主角大特寫(放大 11 倍: 220 × 308), 往右上跳
+  ctx.save();
+  ctx.translate(1190, 170);
+  ctx.rotate(-0.08);
+  ctx.scale(11, 11);
+  A.drawPlayer(ctx, { x: 0, y: 0, facing: 1, state: 'air' });
+  ctx.restore();
+
+  // 遊戲名(左上兩行)
+  line('接力吉尼', 150, 180, 160, C.text, 'rgba(168,196,255,0.45)');
+  line('(Jelly Jinni)', 160, 320, 80, C.ghost, null);
+  ctx.restore();
+})();
+</script>
+</body>
+</html>

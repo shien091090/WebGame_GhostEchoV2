@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>接力吉尼 圖示 C — 摸到終點旗</title>
+<style>body{margin:0;overflow:hidden;background:#2a2210}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="512" height="512"></canvas>
+<script src="../game/art/art.js"></script>
+<script>
+// 圖示 C: 主角大特寫跳向終點旗, 身後淡淡一個幽靈殘影; 金色放射光背景。
+(function () {
+  var A = window.Art, C = A.palette;
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  var W = 512, H = 512;
+
+  function rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  function glow(x, y, r, hex, a) {
+    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgba(hex, a));
+    g.addColorStop(1, rgba(hex, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+
+  ctx.save();
+  // 背景: 暗金底 + 放射光(以旗子為中心)
+  ctx.fillStyle = '#2b2414';
+  ctx.fillRect(0, 0, W, H);
+  var ox = 340, oy = 200;
+  ctx.fillStyle = 'rgba(255,210,63,0.13)';
+  for (var i = 0; i < 16; i++) {
+    var a0 = i * Math.PI * 2 / 16, a1 = a0 + Math.PI / 16;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ox + Math.cos(a0) * 800, oy + Math.sin(a0) * 800);
+    ctx.lineTo(ox + Math.cos(a1) * 800, oy + Math.sin(a1) * 800);
+    ctx.closePath();
+    ctx.fill();
+  }
+  glow(ox, oy, 260, C.goal, 0.45);
+  // 四周壓暗, 讓光集中在中間
+  var v = ctx.createRadialGradient(256, 256, 160, 256, 256, 380);
+  v.addColorStop(0, 'rgba(18,24,38,0)');
+  v.addColorStop(1, 'rgba(18,24,38,0.75)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, W, H);
+
+  // 終點旗(右上, 放大 7 倍: 168 × 280)
+  ctx.save();
+  ctx.translate(292, 64);
+  ctx.scale(7, 7);
+  A.drawGoal(ctx, { x: 0, y: 0 });
+  ctx.restore();
+
+  // 幽靈殘影(左上方一點, 半透明; 上一代把你送到這裡)
+  ctx.save();
+  ctx.translate(56, 76);
+  ctx.scale(9, 9);
+  ctx.globalAlpha = 0.75;
+  A.drawGhost(ctx, { x: 0, y: 0, facing: 1, state: 'air', hookable: false, hookAir: true });
+  ctx.restore();
+
+  // 主角大特寫(放大 11 倍: 220 × 308), 跳起朝右伸向旗子
+  ctx.save();
+  ctx.translate(132, 150);
+  ctx.scale(11, 11);
+  A.drawPlayer(ctx, { x: 0, y: 0, facing: 1, state: 'air' });
+  ctx.restore();
+
+  ctx.restore();
+})();
+</script>
+</body>
+</html>

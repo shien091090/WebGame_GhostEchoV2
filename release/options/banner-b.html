@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>接力吉尼 橫幅 B — 關卡一景</title>
+<style>body{margin:0;overflow:hidden;background:#121826}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="1680" height="720"></canvas>
+<script src="../game/art/art.js"></script>
+<script>
+// 橫幅 B: 一段關卡橫切面——上一代踩住壓板讓閘門開著, 另一個上一代跳過尖刺坑, 你用鉤爪鉤住它飛過去;
+// 右邊是翹翹板與終點旗。遊戲名在上方。
+(function () {
+  var A = window.Art, C = A.palette;
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  var W = 1680, H = 720;
+  var FONT = '"Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif';
+  var NAME = '接力吉尼(Jelly Jinni)';
+
+  function rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  function glow(x, y, r, hex, a) {
+    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgba(hex, a));
+    g.addColorStop(1, rgba(hex, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  function title(s, x, y, maxW, size) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.font = 'bold ' + size + 'px ' + FONT;
+    while (size > 48 && ctx.measureText(s).width > maxW) { size -= 4; ctx.font = 'bold ' + size + 'px ' + FONT; }
+    ctx.lineWidth = size / 5;
+    ctx.strokeStyle = 'rgba(8,10,18,0.95)';
+    ctx.strokeText(s, x + 7, y + 7);
+    ctx.fillStyle = 'rgba(166,255,77,0.35)';
+    ctx.fillText(s, x + 7, y + 7);          // 身後一層鉤爪綠殘影
+    ctx.strokeText(s, x, y);
+    ctx.fillStyle = C.text;
+    ctx.fillText(s, x, y);
+    ctx.restore();
+  }
+
+  ctx.save();
+  // 背景: 夜藍漸層 + 格線(遊戲內 32 世界單位一格, 放大 2 倍 = 64)
+  var g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, C.bgTop);
+  g.addColorStop(1, C.bg);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(255,255,255,0.035)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  for (var gx = 0; gx <= W; gx += 64) { ctx.moveTo(gx, 0); ctx.lineTo(gx, H); }
+  for (var gy = 16; gy <= H; gy += 64) { ctx.moveTo(0, gy); ctx.lineTo(W, gy); }
+  ctx.stroke();
+
+  // 光暈: 鉤爪 / 終點(畫面座標)
+  glow(893, 290, 220, C.hook, 0.16);
+  glow(1536, 600, 220, C.goal, 0.25);
+
+  // 世界層: 畫面 = (0, 144) + 世界 × 2.4(世界寬 700 = 畫面 1680)
+  var K = 2.4;
+  ctx.save();
+  ctx.translate(0, 144);
+  ctx.scale(K, K);
+  // 坑底暗紅警示(遊戲內畫法)
+  var pg = ctx.createLinearGradient(0, 194, 0, 240);
+  pg.addColorStop(0, 'rgba(255,77,77,0)');
+  pg.addColorStop(1, 'rgba(255,77,77,0.28)');
+  ctx.fillStyle = pg;
+  ctx.fillRect(330, 194, 70, 46);
+
+  // 地形
+  A.drawPlatform(ctx, { x: 0, y: 210, w: 330, h: 32, solid: true });
+  A.drawPlatform(ctx, { x: 400, y: 210, w: 300, h: 32, solid: true });
+  A.drawSpike(ctx, { x: 330, y: 228, w: 70 });
+  A.drawPlatform(ctx, { x: 440, y: 128, w: 100, h: 12, solid: false });
+
+  // 機關: 閘門壓板(被 1 號踩著) → 閘門打開; 翹翹板; 終點旗
+  A.drawPlate(ctx, { x: 190, y: 204, pressed: true, kind: 'gate' });
+  A.drawGate(ctx, { x: 572, y: 96, open: true });
+  A.drawSeesaw(ctx, { x: 420, y: 204, tilt: 0.81 });
+  A.drawGoal(ctx, { x: 616, y: 170 });
+
+  // 2 號幽靈的軌跡: 從坑邊起跳, 跳到坑上方
+  var seg = [];
+  for (var t = 0; t <= 90; t++) {
+    var p = t / 90;
+    seg.push({ x: 250 + 122 * p, y: 196 - 136 * Math.sin(p * Math.PI * 0.62) / Math.sin(Math.PI * 0.62) });
+  }
+  A.drawGhostPath(ctx, { segments: [seg] });
+
+  // 角色
+  A.drawGhost(ctx, { x: 200, y: 182, facing: 1, state: 'idle', hookable: false, hookAir: true });   // 1 號踩壓板
+  A.drawGhost(ctx, { x: 362, y: 46, facing: 1, state: 'air', hookable: false, hookAir: true });     // 2 號在坑上方
+  A.drawHook(ctx, { x1: 302, y1: 120, x2: 370, y2: 68 });
+  A.drawPlayer(ctx, { x: 292, y: 106, facing: 1, state: 'launch' });                                // 你: 鉤住 2 號飛過去
+  ctx.restore();
+
+  // 遊戲名
+  title(NAME, W / 2, 104, 1340, 116);
+  ctx.restore();
+})();
+</script>
+</body>
+</html>
