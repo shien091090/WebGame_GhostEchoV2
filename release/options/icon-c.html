@@ -1,71 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<title>接力吉尼 圖示 C — 跳躍中的幽靈與路線虛線</title>
-<style>html,body{margin:0;overflow:hidden;background:#121826}canvas{display:block}</style>
+<title>接力吉尼 圖示 C — 摸到終點旗</title>
+<style>body{margin:0;overflow:hidden;background:#2a2210}canvas{display:block}</style>
 </head>
 <body>
 <canvas id="c" width="512" height="512"></canvas>
 <script src="../game/art/art.js"></script>
 <script>
-// 構圖: 主角換成幽靈 — 半透明的上一代正在空中跳, 身後拖著遊戲裡的幽靈路線圓點弧, 起點是空心圈。紫藍夜色底。
+// 圖示 C: 主角大特寫跳向終點旗, 身後淡淡一個幽靈殘影; 金色放射光背景。
 (function () {
-  var A = window.Art, P = A.palette;
-  var cv = document.getElementById('c');
-  // 路線圓點(遊戲內幽靈路線的畫法放大): 二次曲線 (x0,y0) → (x1,y1), 控制點 (qx,qy)
-  function trail(ctx, x0, y0, qx, qy, x1, y1, n) {
-    for (var i = 1; i <= n; i++) {
-      var u = i / (n + 1), v = 1 - u;
-      var x = v * v * x0 + 2 * v * u * qx + u * u * x1;
-      var y = v * v * y0 + 2 * v * u * qy + u * u * y1;
-      var rad = 7 + 5 * u;                       // 越靠近幽靈越大
-      ctx.beginPath(); ctx.arc(x, y, rad + 4, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(8,10,18,0.55)'; ctx.fill();
-      ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(168,196,255,' + (0.55 + 0.4 * u) + ')'; ctx.fill();
-    }
-    // 起點空心圈
-    ctx.beginPath(); ctx.arc(x0, y0, 16, 0, Math.PI * 2);
-    ctx.lineWidth = 11; ctx.strokeStyle = 'rgba(8,10,18,0.55)'; ctx.stroke();
-    ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(168,196,255,0.85)'; ctx.stroke();
+  var A = window.Art, C = A.palette;
+  var cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  var W = 512, H = 512;
+
+  function rgba(hex, a) {
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
   }
-  function draw() {
-    var ctx = cv.getContext('2d');
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    var g = ctx.createLinearGradient(0, 0, 0, 512);
-    g.addColorStop(0, '#2a2352');
-    g.addColorStop(1, '#141a30');
+  function glow(x, y, r, hex, a) {
+    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgba(hex, a));
+    g.addColorStop(1, rgba(hex, 0));
     ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 512, 512);
-    // 遊戲背景的格線(放大), 讓底不是一片死平
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (var gx = 0; gx <= 512; gx += 64) { ctx.moveTo(gx, 0); ctx.lineTo(gx, 512); }
-    for (var gy = 0; gy <= 512; gy += 64) { ctx.moveTo(0, gy); ctx.lineTo(512, gy); }
-    ctx.stroke();
-    // 幽靈身後的冷光
-    var r = ctx.createRadialGradient(305, 225, 0, 305, 225, 230);
-    r.addColorStop(0, 'rgba(168,196,255,0.40)');
-    r.addColorStop(0.5, 'rgba(168,196,255,0.13)');
-    r.addColorStop(1, 'rgba(168,196,255,0)');
-    ctx.fillStyle = r;
-    ctx.fillRect(0, 0, 512, 512);
-    // 路線: 左下起點 → 幽靈腳下
-    trail(ctx, 100, 412, 150, 290, 300, 356, 6);
-    // 幽靈(世界 × 10, 空中姿勢), 三層 ≈ 76% 不透明: 主角用的是半透明身體, 小尺寸要撐得住輪廓
-    var K = 10;
-    ctx.save();
-    ctx.translate(205, 92);
-    ctx.scale(K, K);
-    var s = { x: 0, y: 0, facing: 1, state: 'air', gen: 0, hookable: false, hookAir: true };
-    A.drawGhost(ctx, s); A.drawGhost(ctx, s); A.drawGhost(ctx, s);
-    ctx.restore();
-    ctx.restore();
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
-  draw();
+
+  ctx.save();
+  // 背景: 暗金底 + 放射光(以旗子為中心)
+  ctx.fillStyle = '#2b2414';
+  ctx.fillRect(0, 0, W, H);
+  var ox = 340, oy = 200;
+  ctx.fillStyle = 'rgba(255,210,63,0.13)';
+  for (var i = 0; i < 16; i++) {
+    var a0 = i * Math.PI * 2 / 16, a1 = a0 + Math.PI / 16;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ox + Math.cos(a0) * 800, oy + Math.sin(a0) * 800);
+    ctx.lineTo(ox + Math.cos(a1) * 800, oy + Math.sin(a1) * 800);
+    ctx.closePath();
+    ctx.fill();
+  }
+  glow(ox, oy, 260, C.goal, 0.45);
+  // 四周壓暗, 讓光集中在中間
+  var v = ctx.createRadialGradient(256, 256, 160, 256, 256, 380);
+  v.addColorStop(0, 'rgba(18,24,38,0)');
+  v.addColorStop(1, 'rgba(18,24,38,0.75)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, W, H);
+
+  // 終點旗(右上, 放大 7 倍: 168 × 280)
+  ctx.save();
+  ctx.translate(292, 64);
+  ctx.scale(7, 7);
+  A.drawGoal(ctx, { x: 0, y: 0 });
+  ctx.restore();
+
+  // 幽靈殘影(左上方一點, 半透明; 上一代把你送到這裡)
+  ctx.save();
+  ctx.translate(56, 76);
+  ctx.scale(9, 9);
+  ctx.globalAlpha = 0.75;
+  A.drawGhost(ctx, { x: 0, y: 0, facing: 1, state: 'air', hookable: false, hookAir: true });
+  ctx.restore();
+
+  // 主角大特寫(放大 11 倍: 220 × 308), 跳起朝右伸向旗子
+  ctx.save();
+  ctx.translate(132, 150);
+  ctx.scale(11, 11);
+  A.drawPlayer(ctx, { x: 0, y: 0, facing: 1, state: 'air' });
+  ctx.restore();
+
+  ctx.restore();
 })();
 </script>
 </body>
