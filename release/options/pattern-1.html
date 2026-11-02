@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>接力吉尼 色帶圖樣 1 — 幽靈藍</title>
+<style>html,body{margin:0;overflow:hidden;background:#4776c3}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="256" height="256"></canvas>
+<script>
+// 紋路: 遊戲裡的接力跳躍虛線弧(圓點 + 落點空心圈)與終點旗上的五角星, 同色系低對比。
+// 無縫: 所有元素以 128 為週期排列(整除 256), 每個元素再在 ±256 各補畫一份。
+(function () {
+  var BG = '#4776c3', INK = '#5986d0';
+  var ctx = document.getElementById('c').getContext('2d');
+  var OFF = [-256, 0, 256];
+  function each(fn) { for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) fn(OFF[i], OFF[j]); }
+  function dot(x, y, r) { each(function (dx, dy) { ctx.beginPath(); ctx.arc(x + dx, y + dy, r, 0, Math.PI * 2); ctx.fill(); }); }
+  function ring(x, y, r) { each(function (dx, dy) { ctx.beginPath(); ctx.arc(x + dx, y + dy, r, 0, Math.PI * 2); ctx.stroke(); }); }
+  function star(x, y, R, r) {
+    each(function (dx, dy) {
+      ctx.beginPath();
+      for (var k = 0; k < 10; k++) {
+        var a = -Math.PI / 2 + k * Math.PI / 5, d = k % 2 ? r : R;
+        var px = x + dx + Math.cos(a) * d, py = y + dy + Math.sin(a) * d;
+        if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+    });
+  }
+  // 一段接力弧: (x0, y) → (x0 + 128, y), 中點抬高 36; 終點空心圈
+  function hop(x0, y) {
+    for (var i = 1; i < 8; i++) {
+      var u = i / 8;
+      dot(x0 + 128 * u, y - 4 * 36 * u * (1 - u), 4.5);
+    }
+    ring(x0 + 128, y, 8);
+  }
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, 256, 256);
+  ctx.fillStyle = INK;
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 3.5;
+  hop(0, 100); hop(128, 100);          // 第一排
+  hop(64, 228); hop(192, 228);         // 第二排, 錯開半段
+  star(0, 40, 9, 3.8); star(128, 40, 9, 3.8);
+  star(64, 168, 9, 3.8); star(192, 168, 9, 3.8);
+})();
+</script>
+</body>
+</html>

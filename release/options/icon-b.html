@@ -1,70 +1,49 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html>
 <head>
 <meta charset="utf-8">
-<title>接力吉尼 圖示 B — 鉤爪飛躍</title>
-<style>body{margin:0;overflow:hidden;background:#0f1a1c}canvas{display:block}</style>
+<title>接力吉尼 圖示 B — 本尊特寫與兩層殘影</title>
+<style>html,body{margin:0;overflow:hidden;background:#121826}canvas{display:block}</style>
 </head>
 <body>
 <canvas id="c" width="512" height="512"></canvas>
 <script src="../game/art/art.js"></script>
 <script>
-// 圖示 B: 鉤爪動作——玩家斜向射出, 綠色鉤索鉤住半空中的幽靈。對角線構圖, 鉤爪綠主導。
+// 構圖: 本尊放大到佔滿畫面的大頭特寫, 身後往左下拖兩層幽靈殘影(前兩代的自己), 金色光暈。
 (function () {
-  var A = window.Art, C = A.palette;
-  var cv = document.getElementById('c'), ctx = cv.getContext('2d');
-  var W = 512, H = 512;
-
-  function rgba(hex, a) {
-    var n = parseInt(hex.slice(1), 16);
-    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
-  }
-  function glow(x, y, r, hex, a) {
-    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, rgba(hex, a));
-    g.addColorStop(1, rgba(hex, 0));
+  var A = window.Art, P = A.palette;
+  var cv = document.getElementById('c');
+  function draw() {
+    var ctx = cv.getContext('2d');
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    var g = ctx.createLinearGradient(0, 0, 0, 512);
+    g.addColorStop(0, P.bgTop);
+    g.addColorStop(1, P.bg);
     ctx.fillStyle = g;
-    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    ctx.fillRect(0, 0, 512, 512);
+    // 終點金光暈(偏右上, 角色朝向的那一側)
+    var r = ctx.createRadialGradient(300, 210, 0, 300, 210, 260);
+    r.addColorStop(0, 'rgba(255,210,63,0.30)');
+    r.addColorStop(0.5, 'rgba(255,210,63,0.10)');
+    r.addColorStop(1, 'rgba(255,210,63,0)');
+    ctx.fillStyle = r;
+    ctx.fillRect(0, 0, 512, 512);
+    // 角色組(世界 × 12.5): 第 1 代殘影(單層, 最淡) → 第 2 代殘影(兩層) → 本尊
+    var K = 12.5;
+    ctx.save();
+    ctx.translate(293.5, 231);
+    ctx.scale(K, K);
+    var gs = { facing: 1, state: 'idle', gen: 0, hookable: false, hookAir: true };
+    A.drawGhost(ctx, { x: -16, y: -10, facing: 1, state: 'idle', gen: 0, hookable: false, hookAir: true });
+    gs.x = -13; gs.y = -12;
+    A.drawGhost(ctx, gs);
+    A.drawGhost(ctx, gs);
+    A.drawPlayer(ctx, { x: -10, y: -14, facing: 1, state: 'idle', gen: 0 });
+    ctx.restore();
+    ctx.restore();
   }
-
-  ctx.save();
-  // 背景: 深墨綠 → 夜藍 的對角漸層
-  var g = ctx.createLinearGradient(0, H, W, 0);
-  g.addColorStop(0, '#0d1414');
-  g.addColorStop(0.55, '#16303a');
-  g.addColorStop(1, '#1b2440');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-
-  // 對角速度線(左下 → 右上, 淡綠)
-  ctx.strokeStyle = rgba(C.hook, 0.10);
-  ctx.lineCap = 'round';
-  var lines = [[-40, 300, 260, 0, 10], [40, 470, 420, 90, 14], [150, 560, 560, 150, 8], [-60, 420, 160, 200, 6]];
-  for (var i = 0; i < lines.length; i++) {
-    ctx.lineWidth = lines[i][4];
-    ctx.beginPath();
-    ctx.moveTo(lines[i][0], lines[i][1]);
-    ctx.lineTo(lines[i][2], lines[i][3]);
-    ctx.stroke();
-  }
-
-  // 世界層: 鉤爪構圖(世界範圍 x −28~32、y −40~16), 放大 6.4 倍置中
-  var K = 6.4;
-  ctx.save();
-  ctx.translate(256 - 2 * K, 256 + 12 * K);
-  ctx.scale(K, K);
-  // 鉤尖的綠光(畫在世界座標)
-  ctx.save();
-  ctx.scale(1 / K, 1 / K);
-  glow(22 * K, -26 * K, 150, C.hook, 0.35);
-  glow(-18 * K, 2 * K, 170, C.player, 0.14);
-  ctx.restore();
-  A.drawGhost(ctx, { x: 12, y: -40, facing: 1, state: 'air', hookable: false, hookAir: true });
-  A.drawHook(ctx, { x1: -18, y1: 2, x2: 22, y2: -26 });
-  A.drawPlayer(ctx, { x: -28, y: -12, facing: 1, state: 'launch' });
-  ctx.restore();
-
-  ctx.restore();
+  draw();
 })();
 </script>
 </body>

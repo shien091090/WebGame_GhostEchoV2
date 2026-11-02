@@ -1,133 +1,117 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html>
 <head>
 <meta charset="utf-8">
-<title>接力吉尼 橫幅 A — 三代排排站</title>
-<style>body{margin:0;overflow:hidden;background:#121826}canvas{display:block}</style>
+<title>接力吉尼 橫幅 A — 接力跑道</title>
+<style>html,body{margin:0;overflow:hidden;background:#121826}canvas{display:block}</style>
 </head>
 <body>
 <canvas id="c" width="1680" height="720"></canvas>
 <script src="../game/art/art.js"></script>
 <script>
-// 橫幅 A: 舞台聚光燈下, 第 1、2 代(幽靈)與現在的你排成一列走向終點旗; 遊戲名在上方置中。
+// 構圖: 標題置中在上; 下半是一條跑道, 第 1 代幽靈 → 第 2 代幽靈 → 本尊排排站, 頭頂之間連著接力虛線弧,
+// 最後一道弧跳過尖刺落到終點旗。左下角只有地面。
 (function () {
-  var A = window.Art, C = A.palette;
-  var cv = document.getElementById('c'), ctx = cv.getContext('2d');
-  var W = 1680, H = 720;
+  var A = window.Art, P = A.palette;
+  var cv = document.getElementById('c');
   var FONT = '"Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif';
-  var NAME = '接力吉尼(Jelly Jinni)';
+  var STROKE = 'rgba(8,10,18,0.9)';
 
-  function rgba(hex, a) {
-    var n = parseInt(hex.slice(1), 16);
-    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
-  }
-  function glow(x, y, r, hex, a) {
-    var g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, rgba(hex, a));
-    g.addColorStop(1, rgba(hex, 0));
-    ctx.fillStyle = g;
-    ctx.fillRect(x - r, y - r, r * 2, r * 2);
-  }
-  function title(s, x, y, maxW, size) {
+  // 遊戲名(開始畫面標題的畫法: 中文主標 + 兩層幽靈藍殘影, 英文副標幽靈藍)
+  function title(ctx, cx, y1, s1, y2, s2) {
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
-    ctx.font = 'bold ' + size + 'px ' + FONT;
-    while (size > 48 && ctx.measureText(s).width > maxW) { size -= 4; ctx.font = 'bold ' + size + 'px ' + FONT; }
-    ctx.lineWidth = size / 5;
-    ctx.strokeStyle = 'rgba(8,10,18,0.95)';
-    ctx.strokeText(s, x + 8, y + 8);
-    ctx.fillStyle = 'rgba(168,196,255,0.45)';
-    ctx.fillText(s, x + 8, y + 8);          // 身後一層淡藍殘影(同開始畫面)
-    ctx.strokeText(s, x, y);
-    ctx.fillStyle = C.text;
-    ctx.fillText(s, x, y);
+    ctx.font = '900 ' + s1 + 'px "JJ Zen Maru Gothic", ' + FONT;
+    ctx.fillStyle = 'rgba(168,196,255,0.15)';
+    ctx.fillText('接力吉尼', cx - s1 * 0.15, y1 + s1 * 0.08);
+    ctx.fillStyle = 'rgba(168,196,255,0.3)';
+    ctx.fillText('接力吉尼', cx - s1 * 0.077, y1 + s1 * 0.04);
+    ctx.lineWidth = s1 * 0.135;
+    ctx.strokeStyle = STROKE;
+    ctx.strokeText('接力吉尼', cx, y1);
+    ctx.fillStyle = P.player;
+    ctx.fillText('接力吉尼', cx, y1);
+    ctx.font = 'bold ' + s2 + 'px "JJ Mochiy Pop One", ' + FONT;
+    ctx.lineWidth = s2 * 0.25;
+    ctx.strokeStyle = STROKE;
+    ctx.strokeText('-Jelly Jinni-', cx, y2);
+    ctx.fillStyle = P.ghost;
+    ctx.fillText('-Jelly Jinni-', cx, y2);
     ctx.restore();
   }
-  function spot(cx, topW, botW, yTop, yBot, a) {
-    var g = ctx.createLinearGradient(0, yTop, 0, yBot);
-    g.addColorStop(0, 'rgba(255,241,208,' + a + ')');
-    g.addColorStop(1, 'rgba(255,241,208,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(cx - topW / 2, yTop);
-    ctx.lineTo(cx + topW / 2, yTop);
-    ctx.lineTo(cx + botW / 2, yBot);
-    ctx.lineTo(cx - botW / 2, yBot);
-    ctx.closePath();
-    ctx.fill();
+  // 接力虛線弧(開始畫面的畫法): (x0,y0) → (x1,y1), 中點再抬高 h; 終點空心圈
+  function arc(ctx, x0, y0, x1, y1, h) {
+    var n = 14;
+    for (var i = 1; i < n; i++) {
+      var u = i / n, x = x0 + (x1 - x0) * u, y = y0 + (y1 - y0) * u - 4 * h * u * (1 - u);
+      ctx.beginPath(); ctx.arc(x, y, 6.5, 0, Math.PI * 2); ctx.fillStyle = 'rgba(8,10,18,0.55)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = 'rgba(168,196,255,0.9)'; ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(x1, y1, 10, 0, Math.PI * 2);
+    ctx.lineWidth = 7; ctx.strokeStyle = 'rgba(8,10,18,0.55)'; ctx.stroke();
+    ctx.lineWidth = 3.6; ctx.strokeStyle = 'rgba(168,196,255,0.9)'; ctx.stroke();
   }
-
-  ctx.save();
-  // 背景: 夜藍漸層 + 淡格線
-  var g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, C.bgTop);
-  g.addColorStop(1, C.bg);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(255,255,255,0.035)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  for (var gx = 0; gx <= W; gx += 48) { ctx.moveTo(gx, 0); ctx.lineTo(gx, H); }
-  for (var gy = 0; gy <= H; gy += 48) { ctx.moveTo(0, gy); ctx.lineTo(W, gy); }
-  ctx.stroke();
-
-  var GROUND = 606, K = 6;          // 地面頂 y; 角色放大 6 倍(120 × 168)
-  var xs = [600, 800, 1000];        // 三代的左緣
-
-  // 聚光燈(每人一道) + 終點旗金光
-  for (var i = 0; i < xs.length; i++) spot(xs[i] + 60, 70, 260, 0, GROUND, i === 2 ? 0.16 : 0.08);
-  glow(1300, 470, 230, C.goal, 0.28);
-
-  // 地面(滿版)
-  ctx.save();
-  ctx.translate(0, GROUND);
-  ctx.scale(K, K);
-  A.drawPlatform(ctx, { x: 0, y: 0, w: W / K, h: (H - GROUND) / K + 1, solid: true });
-  ctx.restore();
-
-  // 幽靈走過的虛線軌跡(遊戲內畫法), 從左邊地面延伸到第 1 代
-  var seg = [];
-  for (var t = 0; t <= 120; t++) {
-    var px = 440 + t * 1.3, py = (GROUND - 90) - Math.sin(t / 120 * Math.PI) * 110;
-    seg.push({ x: px / K, y: py / K });
-  }
-  ctx.save();
-  ctx.scale(K, K);
-  A.drawGhostPath(ctx, { segments: [seg] });
-  ctx.restore();
-
-  // 腳下影子
-  ctx.fillStyle = 'rgba(0,0,0,0.38)';
-  for (i = 0; i < xs.length; i++) {
-    ctx.beginPath();
-    ctx.ellipse(xs[i] + 60, GROUND + 2, 58, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // 三代: 1、2 號幽靈 + 3 號你(往右跑向旗子)
-  function at(x, fn, s) {
+  function ghost(ctx, s) { A.drawGhost(ctx, s); A.drawGhost(ctx, s); }   // 兩層 ≈ 62% 不透明
+  function glow(ctx, x, y, rx, ry, col, a) {
     ctx.save();
-    ctx.translate(x, GROUND - 28 * K);
-    ctx.scale(K, K);
-    fn(ctx, s);
+    ctx.translate(x, y); ctx.scale(1, ry / rx);
+    var r = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+    r.addColorStop(0, 'rgba(' + col + ',' + a + ')');
+    r.addColorStop(1, 'rgba(' + col + ',0)');
+    ctx.fillStyle = r;
+    ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
-  at(xs[0], A.drawGhost, { x: 0, y: 0, facing: 1, state: 'idle', hookable: false, hookAir: true });
-  at(xs[1], A.drawGhost, { x: 0, y: 0, facing: 1, state: 'run', hookable: false, hookAir: true });
-  at(xs[2], A.drawPlayer, { x: 0, y: 0, facing: 1, state: 'run' });
 
-  // 終點旗(放大 6 倍: 144 × 240, 立在地面)
-  ctx.save();
-  ctx.translate(1250, GROUND - 40 * K);
-  ctx.scale(K, K);
-  A.drawGoal(ctx, { x: 0, y: 0 });
-  ctx.restore();
+  function draw() {
+    var ctx = cv.getContext('2d');
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = P.bg;
+    ctx.fillRect(0, 0, 1680, 720);
+    // 遊戲背景(世界 853⅓ 寬 → 1680, 高度蓋過 720)
+    ctx.save(); ctx.scale(1680 / 853.3333, 1680 / 853.3333); A.drawBackground(ctx, {}); ctx.restore();
+    glow(ctx, 840, 170, 620, 200, '168,196,255', 0.22);   // 標題光暈
+    glow(ctx, 880, 470, 620, 150, '168,196,255', 0.12);   // 跑道舞台光
 
-  // 遊戲名
-  title(NAME, W / 2, 168, 1340, 124);
-  ctx.restore();
+    var F = 4.5;   // 場景世界倍率: 地面頂 = 世界 116 = 畫面 522
+    ctx.save();
+    ctx.scale(F, F);
+    // 懸浮的單向平台(場景點綴)
+    A.drawPlatform(ctx, { x: 18, y: 72, w: 56, h: 12, solid: false });
+    A.drawPlatform(ctx, { x: 300, y: 62, w: 56, h: 12, solid: false });
+    // 跑道地面(蓋滿下緣, 左下角只有這塊地)
+    A.drawPlatform(ctx, { x: -2, y: 116, w: 378, h: 50, solid: true });
+    A.drawSpike(ctx, { x: 226, y: 104, w: 36 });
+    // 影子
+    ctx.fillStyle = 'rgba(0,0,0,0.32)';
+    [106, 156, 206].forEach(function (cx) { ctx.beginPath(); ctx.ellipse(cx, 116.5, 9, 1.6, 0, 0, Math.PI * 2); ctx.fill(); });
+    A.drawGoal(ctx, { x: 272, y: 76 });
+    ghost(ctx, { x: 96, y: 88, facing: 1, state: 'idle', gen: 0, hookable: false, hookAir: true });
+    ghost(ctx, { x: 146, y: 88, facing: 1, state: 'idle', gen: 0, hookable: false, hookAir: true });
+    A.drawPlayer(ctx, { x: 196, y: 88, facing: 1, state: 'idle', gen: 0 });
+    ctx.restore();
+
+    // 頭頂之間的接力弧 + 本尊跳過尖刺到旗桿頂
+    arc(ctx, 106 * F, 88 * F, 156 * F, 88 * F, 62);
+    arc(ctx, 156 * F, 88 * F, 206 * F, 88 * F, 62);
+    arc(ctx, 206 * F, 88 * F, 277.75 * F, 78 * F, 70);
+
+    title(ctx, 840, 132, 150, 254, 60);
+    ctx.restore();
+  }
+  draw();
+  // 標題字型(art.js 內嵌)載好後重畫一次; 載不到就保留後備字型的版本
+  try {
+    if (document.fonts && document.fonts.load) {
+      Promise.all([
+        document.fonts.load('900 150px "JJ Zen Maru Gothic"', '接力吉尼'),
+        document.fonts.load('bold 60px "JJ Mochiy Pop One"', '-Jelly Jinni-')
+      ]).then(draw, function () {});
+    }
+  } catch (e) { /* 略過 */ }
 })();
 </script>
 </body>
