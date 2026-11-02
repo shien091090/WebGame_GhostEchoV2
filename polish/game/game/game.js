@@ -362,6 +362,9 @@
   }
 
   // ===== 觸控鏡頭(狀態每步更新; 電腦版不使用) =====
+  // 鏡頭左右可以超出關卡邊界, 讓角色走到關卡兩端時不會躲在左下 ◀ ▶ / 右下跳躍鍵後面(超出的部分在畫面上是按鈕底下的暗色留白)
+  // 左: touch.js 左右兩鍵右緣約 338 + 留白 → 角色至少在畫面 x 300 外; 右: 跳躍鍵左緣約 CW − 202 → 約 230
+  var CAM_PAD_L = 300 / ZT, CAM_PAD_R = 230 / ZT;
   function camMax() { return { x: Math.max(0, WORLD_W - CW / ZT), y: Math.max(0, WH - CH / ZT) }; }
   function camFocus() {
     if (S.screen !== 'play') return null;
@@ -375,7 +378,7 @@
   function camTarget() {
     var f = camFocus(); if (!f) return null;
     var m = camMax();
-    return { x: Math.max(0, Math.min(m.x, f.x - CW / ZT / 2)), y: Math.max(0, Math.min(m.y, f.y - CAM_TY)) };
+    return { x: Math.max(-CAM_PAD_L, Math.min(m.x + CAM_PAD_R, f.x - CW / ZT / 2)), y: Math.max(0, Math.min(m.y, f.y - CAM_TY)) };
   }
   function camSnap() { var t = camTarget(); if (t) { S.camX = t.x; S.camY = t.y; } }
   function camFollow() {
@@ -790,6 +793,7 @@
   }
   function drawPlay(ctx) {
     var W = S.W, P = S.P;
+    if (isTouch()) { ctx.save(); ctx.fillStyle = '#0a0d18'; ctx.fillRect(0, 0, CW, CH); ctx.restore(); }   // 鏡頭超出關卡的留白
     worldBegin(ctx);
     try { drawPlayWorld(ctx, W, P); } finally { ctx.restore(); }
     // 畫面層
@@ -855,10 +859,10 @@
   var T_PRE = { die: 'move', head: 'die', hookFire: 'hookAim' };
   // 避開聲音開關圖示: 圖示 (1228, 56, 40, 40) 外擴 6; 觸控模式改避開右上選單鍵(TOUCH_MENU, 畫布座標)
   var TUT_AVOID = { x: 1222, y: 50, w: 52, h: 52 };
-  // 觸控模式的方向鍵外接框(畫布座標), 教學泡泡要避開; 數字照 touch.js 的 LAYOUT.dpad(外圈半徑 124、圓心 x = max(SW ÷ 2, 140)、y = 720 − 124 − 80)
+  // 觸控模式左下 ◀ ▶ 兩鍵的外接框(畫布座標), 教學泡泡要避開; 數字照 touch.js 的 LAYOUT.left / right(圓心 (110, CH − 112)、(270, CH − 112), 半徑 68)
   function touchDpadBox() {
-    var sw = (CW - 1280) / 2, ro = 124, cx = Math.max(sw / 2, ro + 16), cy = CH - ro - 80;
-    return { x: cx - ro, y: cy - ro, w: ro * 2, h: ro * 2 };
+    var r = 68, cy = CH - 112;
+    return { x: 110 - r, y: cy - r, w: 270 - 110 + r * 2, h: r * 2 };
   }
   // 世界座標 → 傳給美術的座標(電腦版 × 1.5; 觸控模式 (世界 − 鏡頭) × 2.1, 畫布座標)
   function w2sx(x) { return isTouch() ? (x - S.camX) * ZT : x * ZOOM; }
