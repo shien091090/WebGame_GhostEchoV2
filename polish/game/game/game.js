@@ -308,7 +308,6 @@
       S.fails++;
       emit('level_lose', { attempt: S.attempt, attemptTime: Math.round(nowMs() - S.attemptT0), fails: S.fails });
       download('lose');
-      if (window.PVDX) PVDX.finish();
     }
   }
   // 暫停選單「重來」(整關重來的唯一入口); 呼叫時選單已關閉、pause_close 已記
@@ -352,7 +351,7 @@
     emit('level_win', { attempt: S.attempt, gen: S.gen, attemptTime: Math.round(nowMs() - S.attemptT0),
       levelTime: Math.round(nowMs() - S.levelStartT), fails: S.fails, restarts: S.restarts, pauseTime: S.pauseLevelMs });
     download('win');
-    if (window.PVDX) PVDX.finish();
+    if (window.PVDX) PVDX.levelClear(S.level);
     S.banner = -1;
     var recs = S.recs.slice(0, S.gen);
     S.replay = { recs: recs, G: S.gen, f: 0, prev: [], W: newWorld(S.level), L: recs[S.gen - 1].length };
@@ -1126,7 +1125,7 @@
           setScreen('ending'); music('ending');
           emit('game_complete', { totalTime: Math.round(nowMs() - t0) });
           download('complete');   // 批次最尾端
-          if (window.PVDX) PVDX.finish();
+          if (window.PVDX) PVDX.gameClear();
         } else { snd('uiPage'); S.level++; startLevel('first'); }
       } else if (S.phase === 'lose') {
         snd('uiPage');
