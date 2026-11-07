@@ -326,6 +326,7 @@
       "name": "drawEnding",
       "layer": "screen",
       "state": [
+        "t",
         "vx",
         "vy",
         "vw",
@@ -431,7 +432,7 @@
     "mark": "標示框 { x, y, w, h }(畫面座標, 已含外擴, 美術直接沿框畫)或 null; 脈動的虛線圓角框(顏色和泡泡同系, 不用紅色), 脈動放大最多外擴 4 px。die: 終點旗; gate: 門; lift: 升降台; seesaw: 發射端",
     "avoid": "本輪新增。要避開的框 { x, y, w, h }(畫面座標), 電腦版遊戲端固定傳 { x: 1222, y: 50, w: 52, h: 52 }(聲音開關圖示 (1228, 56, 40, 40) 外擴 6); 觸控模式傳右上選單鍵的避讓框(畫布 OX + 1190, 42, 100, 100)。泡泡本體(不含尾巴、不含 pop / done 的放大與星點)排好並夾進畫布後, 若和 avoid 重疊: place 'above' / 'below' → 泡泡水平往左推到右緣 = avoid.x − 6(1216), 垂直不動; 'left' / 'right' → 泡泡往下推到頂緣 = avoid.y + avoid.h + 6(電腦版 108)。推完尾巴尖端仍在 (ax, ay), 尾巴根部留在泡泡近端邊上、離泡泡角至少 12, 可以斜。不重疊時完全照原排法",
     "drawUnlockPage": "ability: 'hook'(本輪起只有這一種; 第 1 關後出現); 畫滿整張畫布 1280 × 720, 文字歸美術畫: 標題「解鎖 鉤爪」與能力的大圖示(角色鉤住半空中的幽靈、鉤索拉直), 底部「空白 繼續」。右上角 (1228, 12) 留給 drawSoundIcon(使用者裁定: 解鎖頁照現況保留聲音開關圖示)",
-    "drawEnding": "全破畫面(第 5 關後), 畫滿整張畫布 1280 × 720, 文字歸美術畫: 「全部通關!」、「空白 從第 1 關再玩」; 慶祝圖: 一個實心的「你」+ 兩個幽靈(第 1、2 代的幽靈畫法, 半透明但胸口數字清楚)一起歡呼; 底部音樂署名 4 行, 文字同 drawTitle。右上角 (1228, 12) 留給 drawSoundIcon。畫面上不出現哨子或關數 7",
+    "drawEnding": "全破畫面(第 5 關後), 畫滿整張畫布 1280 × 720, 文字歸美術畫: 「全部通關!」、「空白 從第 1 關再玩」(不再有副標); t = 進入全破畫面後的秒數(遊戲端進畫面時歸零、暫停不加), 演出「接力衝線」: 1、2 號幽靈拖藍色軌跡與「你」依序從左跑進, 約 2.3 秒你碰旗 → 閃白、震動、左右下角彩帶炮、旗子處爆星火 → 標題蓋章落下 → 三代輪流跳、彩紙持續落下, 約 3.8 秒浮出「空白 從第 1 關再玩」; t 倒退時美術自動重播, 沒傳 t 畫定格; 底部音樂署名 4 行, 文字同 drawTitle。右上角 (1228, 12) 留給 drawSoundIcon。畫面上不出現哨子或關數 7",
     "text ownership": "文字歸屬: HUD(關卡、代數、計時、鉤爪)、過關 / 失敗字樣、drawAim 的「Z 射出 / X 取消」、「等它跳」、開始畫面(兩行標題「接力吉尼」「-Jelly Jinni-」)、解鎖頁、全破畫面、音樂署名、暫停選單(含觸控版「點一下 選擇」)、開場橫幅的「第 N / 5 關」與關名, 全部由美術在各自的 draw 函式裡畫; 關名與教學泡泡文字由遊戲端傳字串",
     "draw order": "每幀(遊玩畫面): [世界層; 電腦版 scale 1.5, 觸控模式 scale 2.1 + translate(−camX, −camY)] drawBackground → 平台 / 牆 / 尖刺 / 開關 / 升降台 / 門 / 翹翹板 / 旗 → drawGhostPath → drawGhost → drawHook → drawPlayer → drawAim → [畫面層] drawTutorial → drawGoalArrow(觸控模式才有)→ drawHud → drawLevelBanner → drawPauseMenu(暫停時) → drawSoundIcon(電腦版才有)",
     "renamed": "本輪 state 欄位改動(沒有欄位改名, 舊名 → 新名: 無): 新增 drawGoalArrow; drawTitle 構圖整個換(t 意義不變, 仍是已過秒數)並加 vx/vy/vw/vh; drawUnlockPage、drawEnding 加 vx/vy/vw/vh; drawPauseMenu 加 touch、vx/vy/vw/vh; drawHud 加 w、h; drawTutorial 加 scale、bounds 並補 avoid2; drawAim 加 topY。新欄位缺值時一律退回電腦版的值, 舊版 art 漏讀也只是觸控模式不對, 電腦版不受影響",
