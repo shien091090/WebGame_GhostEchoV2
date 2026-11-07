@@ -351,7 +351,10 @@
     emit('level_win', { attempt: S.attempt, gen: S.gen, attemptTime: Math.round(nowMs() - S.attemptT0),
       levelTime: Math.round(nowMs() - S.levelStartT), fails: S.fails, restarts: S.restarts, pauseTime: S.pauseLevelMs });
     download('win');
-    if (window.PVDX) PVDX.levelClear(S.level);
+    if (window.PVDX) {
+      PVDX.levelClear(S.level);
+      if (S.level === LEVEL_COUNT) PVDX.gameClear();   // 最後一關碰旗就算全局通關(先單關再全局)
+    }
     S.banner = -1;
     var recs = S.recs.slice(0, S.gen);
     S.replay = { recs: recs, G: S.gen, f: 0, prev: [], W: newWorld(S.level), L: recs[S.gen - 1].length };
@@ -1125,7 +1128,6 @@
           setScreen('ending'); S.endT = 0; music('ending');
           emit('game_complete', { totalTime: Math.round(nowMs() - t0) });
           download('complete');   // 批次最尾端
-          if (window.PVDX) PVDX.gameClear();
         } else { snd('uiPage'); S.level++; startLevel('first'); }
       } else if (S.phase === 'lose') {
         snd('uiPage');
