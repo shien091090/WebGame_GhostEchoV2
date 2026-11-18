@@ -1,4 +1,4 @@
-/* 接力吉尼(Jelly Jinni) 打磨版第 10 輪 — 16:9 橫式 1280×720, 五關; 邏輯 + 嵌入式新手教學 + 暫停選單 + 呼叫 Art / Sound; 觸控模式放大 1.4 倍跟隨鏡頭 */
+/* 接力吉尼(Jelly Jinni) 打磨版第 11 輪(開始畫面任意鍵 / 點擊開始) — 16:9 橫式 1280×720, 五關; 邏輯 + 嵌入式新手教學 + 暫停選單 + 呼叫 Art / Sound; 觸控模式放大 1.4 倍跟隨鏡頭 */
 (function () {
   'use strict';
 
@@ -23,7 +23,7 @@
   var ZOOM = 1.5, WW = 1280 / 1.5, WH = 480;
   var SND_ICON_PLAY = { x: 1228, y: 56 }, SND_ICON_MENU = { x: 1228, y: 12 };
 
-  var BUILD = 'polish-10';
+  var BUILD = 'polish-11';
   var BANNER_T = 1.5, TUT_FX_T = 0.8, TUT_GAP = 0.4, TUT_POP_T = 0.25;
   // (本輪沒有需要的佔位圖形)
 
@@ -1097,7 +1097,7 @@
     if (!(isTouch() && S.screen === 'play')) ctx.translate(OX, 0);
     var vr = { vx: -OX, vy: 0, vw: CW, vh: 720 };   // 可見範圍(電腦版 OX = 0 → 0, 0, 1280, 720)
     try {
-      if (S.screen === 'title') Art.drawTitle(ctx, { t: S.titleT, vx: vr.vx, vy: vr.vy, vw: vr.vw, vh: vr.vh });
+      if (S.screen === 'title') Art.drawTitle(ctx, { t: S.titleT, touch: isTouch(), vx: vr.vx, vy: vr.vy, vw: vr.vw, vh: vr.vh });
       else if (S.screen === 'unlock') Art.drawUnlockPage(ctx, { ability: S.unlockAbility, vx: vr.vx, vy: vr.vy, vw: vr.vw, vh: vr.vh });
       else if (S.screen === 'ending') Art.drawEnding(ctx, { t: S.endT, vx: vr.vx, vy: vr.vy, vw: vr.vw, vh: vr.vh });
       else if (S.screen === 'play') {
@@ -1110,9 +1110,7 @@
   // ===== 輸入(只有鍵盤) =====
   function onSpace() {
     if (S.screen === 'title') {
-      emit('title_start', { waitTime: Math.round(nowMs() - t0) });
-      snd('uiPage');
-      S.level = 1; startLevel('first');
+      startFromTitle('pad', null);   // 觸控層「確認」鍵送來的空白
     } else if (S.screen === 'unlock') {
       snd('uiPage');
       S.level++; startLevel('first');
@@ -1134,6 +1132,19 @@
         startLevel('retry');
       }
     }
+  }
+  // 開始畫面 → 第 1 關(任何按鍵 / 點擊 / 觸控確認鍵共用); via: key | pad | click | tap
+  var titleDownId = null;
+  function startFromTitle(via, code) {
+    if (S.screen !== 'title') return;
+    if (!firstInput) {
+      firstInput = true;
+      try { if (window.Sound && Sound.init) Sound.init(); } catch (er) { console.error(er); }
+    }
+    titleDownId = null;
+    emit('title_start', { waitTime: Math.round(nowMs() - t0), via: via, key: code || null });
+    snd('uiPage');
+    S.level = 1; startLevel('first');
   }
   function showUnlock(ab) {
     S.unlockAbility = ab;
@@ -1216,7 +1227,31 @@
     if (inR(PAUSE_HIT.resume)) { S.pauseSel = 0; closePause('resume', 'tap'); }
     else if (inR(PAUSE_HIT.restart)) { S.pauseSel = 1; closePause('restart', 'tap'); }
   }
+  var TITLE_IGNORE = { ShiftLeft: 1, ShiftRight: 1, ControlLeft: 1, ControlRight: 1, AltLeft: 1, AltRight: 1, MetaLeft: 1, MetaRight: 1,
+    OSLeft: 1, OSRight: 1, CapsLock: 1, NumLock: 1, ScrollLock: 1, Tab: 1, ContextMenu: 1 };
+  var TITLE_IGNORE_KEY = { Shift: 1, Control: 1, Alt: 1, Meta: 1, OS: 1, CapsLock: 1, NumLock: 1, ScrollLock: 1, Tab: 1, ContextMenu: 1 };
+  // 開始畫面: 任何鍵開始(M 只切靜音); 這一下只用來開始, 不當遊戲輸入
+  function titleKeyDown(e) {
+    if (window.PVDX && PVDX.paused) return true;
+    if (e.code === 'KeyM') return false;   // 交給一般路徑切靜音
+    if (e.repeat || e.ctrlKey || e.altKey || e.metaKey) return true;
+    if (TITLE_IGNORE[e.code] || TITLE_IGNORE_KEY[e.key] || /^F([1-9]|1[0-2])$/.test(e.code || '') || /^F([1-9]|1[0-2])$/.test(e.key || '')) return true;
+    e.preventDefault();
+    startFromTitle('key', e.code || e.key || null);
+    return true;
+  }
+  function titlePointerDown(e) {
+    if (S.screen !== 'title' || (window.PVDX && PVDX.paused)) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    titleDownId = e.pointerId;
+  }
+  function titlePointerUp(e) {
+    if (S.screen !== 'title' || (window.PVDX && PVDX.paused)) { titleDownId = null; return; }
+    if (titleDownId === null || e.pointerId !== titleDownId) return;
+    startFromTitle(e.pointerType === 'mouse' ? 'click' : 'tap', null);
+  }
   function onKeyDown(e) {
+    if (S.screen === 'title' && titleKeyDown(e)) return;
     var n = CODE2NAME[e.code];
     if (!n) return;
     e.preventDefault();
@@ -1279,6 +1314,8 @@
     window.addEventListener('keydown', function (e) { onKeyDown(e); });
     window.addEventListener('keyup', function (e) { onKeyUp(e); });
     window.addEventListener('blur', inputReset);
+    window.addEventListener('pointerdown', titlePointerDown);
+    window.addEventListener('pointerup', titlePointerUp);
     music('title');
     requestAnimationFrame(frame);
   }

@@ -300,7 +300,8 @@
         "vx",
         "vy",
         "vw",
-        "vh"
+        "vh",
+        "touch"
       ],
       "size": [
         1280,
@@ -416,7 +417,7 @@
     "phase": "play | dying | win | lose。win 時畫面持續畫三代回放, drawHud 疊上「過關!」與「空白 下一關」(level === levelCount 即第 5 關時改「空白 繼續」, 接著是全破畫面); lose 時 drawHud 畫失敗畫面(半透明暗幕整張 1280 × 720 + 「失敗」與「空白 再試一次」)。文字歸美術畫。開始畫面、解鎖頁、全破畫面、暫停選單各有自己的 draw 函式",
     "drawSoundIcon": "聲音開關圖示, 框 40 × 40(畫面座標), (x, y) 為左上; 開聲: 喇叭 + 音波弧線; muted 為 true(本輪改): 整個圖示壓暗(喇叭與外框變淡灰)+ 喇叭右側一個「×」(淺灰或白), **不用紅色或橘色**——紅色在本作是尖刺、坑與警告的保留色; 框內左下角或下緣畫小小的 M 鍵帽(≥ 11 px)提示按 M 切換。RD 在每個畫面最後呼叫(在 drawHud、drawLevelBanner、drawPauseMenu 之上): 遊玩中 / 回放 / 失敗畫面 (1228, 56)(資訊列下方、遊玩區右上角 = 世界 818.7~845.3, 37.3~64, 五關這塊都沒物件); 開始畫面、解鎖頁、全破畫面、暫停選單 (1228, 12)。觸控模式(window.PVDX && PVDX.on)不呼叫",
     "drawPauseMenu": "暫停選單, 畫在所有遊戲畫面之上(drawSoundIcon 之下): 全畫面半透明暗幕(0~1280); 中央面板約 360 × 240(x 460~820, y 240~480): 標題「暫停」、兩個選項由上而下「繼續」「重來」(≥ 18 px), sel 指的那項加亮並在左邊畫指示箭頭; 面板底部小字「↑↓ 選擇 空白 確定 Esc 繼續」(↑ ↓ 空白 Esc 畫成鍵帽, ≥ 11 px)。文字歸美術畫。sel: 0 = 繼續, 1 = 重來(從 0 起算) 本輪新增 touch 與 vx, vy, vw, vh: 暗幕畫滿可見範圍(電腦版 0, 0, 1280, 720)。touch 為 true(觸控模式)時 RD 在 translate(CW ÷ 2, 360) scale(1.4) translate(−640, −360) 下呼叫, 可見範圍 = (640 − CW ÷ 2.8, 102.86, CW ÷ 1.4, 514.29); 版面改: 「繼續」列中線 y 332、「重來」列中線 y 396(列距 64), 選中列的亮框照畫(高可加到 56), 點擊區由 RD 判定 繼續 (530, 304, 220, 56)、重來 (530, 368, 220, 56); 底部提示改純文字「點一下 選擇」(中線 y 450, ≥ 13 px), 不畫 ↑↓ / 空白 / Esc 鍵帽。touch 為 false 時版面同上一版(列中線 y 336 / 386)",
-    "drawTitle": "開始畫面「接力跑道」(本輪改版, spec「開始畫面」有完整版位表與 3.6 秒動態時間表), 設計區 1280 × 720 座標, 底色畫滿 vx, vy, vw, vh; 文字全歸美術畫。由上而下: 幽靈藍光暈(中心 (640, 185))、標題第一行「接力吉尼」(Zen Maru Gothic 900 約 104 px, 中線 y 150, 深色描邊 + 兩層幽靈藍殘影往左下位移)、第二行「-Jelly Jinni-」(Mochiy Pop One 約 40 px, 中線 y 242, 幽靈藍)、跑道地面線 y 500(x 220~1060)、第 1 代幽靈 / 第 2 代幽靈 / 第 3 代本尊腳底中點 x 330 / 530 / 730(遊玩畫法放大 3 倍世界單位 = 60 × 84 px, 胸口 1 / 2 / 3, 幽靈不透明度 ≥ 60%)、終點旗旗桿底 (930, 500)(drawGoal 放大 3 倍)、閃爍「空白 開始」鍵帽(中線 y 600)、底部音樂署名 4 行(10~11 px、淡色、置中、約 y 640~710), 照抄: '\"Monkeys Spinning Monkeys\", \"Easy Lemon\", \"Fluffing a Duck\", \"Life of Riley\"' / 'Kevin MacLeod (incompetech.com)' / 'Licensed under Creative Commons: By Attribution 4.0 License' / 'http://creativecommons.org/licenses/by/4.0/'。t = 開始畫面已過秒數(閒置也一直增加), 動態依 t mod 3.6。右上角 (1228, 12) 留給 drawSoundIcon。字型: polish/fonts/ 兩個子集 woff2 以 base64 data URI 內嵌進 art.js、FontFace 註冊 + document.fonts.load; 載好前 / 失敗時用現有粗體字型畫同樣兩行, 不可拋錯、不可擋開始。畫面上不出現兩人疊站小圖、進度條、「幽影接力」、哨子、關數",
+    "drawTitle": "開始畫面(第 11 輪整個重做; spec「開始畫面」有完整版位表與 9 秒動態時間表, 數值也在本檔 titleScene)。**不畫任何標題文字**。設計區 1280 × 720 座標; 底色、地面、高台畫滿 vx, vy, vw, vh(地面與高台往左右延伸到可見範圍邊緣), 角色 / 尖刺 / 旗 / 文字以設計區為準。場景 = 放大 4.5 倍的迷你關卡: 地面頂 y 600 厚 36、尖刺 (600, 546, 90, 54) 3 根、高台左緣 x 700 頂 y 330 實心到地面、終點旗框 (1000, 150, 108, 180)(drawGoal 放大)、出生點腳底 (280, 600)。角色 90 × 126(drawPlayer / drawGhost 畫法放大 3 倍, 胸口 1 / 2, 幽靈不透明度 ≥ 60%, 不畫可鉤綠框 / Z 鍵帽 / 等它跳), 位置以腳底中點描述。動態依 p = t mod 9.0: 第一段 0~3.2 第 1 代跑到高台前跳不上、走進尖刺「噗」地死(白煙 + 小星點, 不用紅)、路線小圓點從出生點畫到死亡點; 第二段 g = p − 3.2: 第 2 代出生, 第 1 代幽靈照原樣重演, 第 2 代跳上幽靈頭頂、被它跳高、從頭上跳上高台、跑去碰旗(旗晃 ±8° + 金色星點 + 淡白閃), 幽靈在旗旁淡入、兩人輪流小跳、定格、5.2~5.7 淡出。逐格時間與座標照 spec 表。底部: 開始提示一行 18 px 粗體暖白、中線 y 668, touch 為 false 寫「按任意按鍵開始遊戲」、true 寫「點擊畫面開始遊戲」, 不透明度 0.55↔1 呼吸(週期 2.4 秒, 依 t, 不跟循環淡出), 不畫鍵帽; 音樂署名**一行** 10 px、不透明度約 0.45、中線 y 704, 照抄: 'Music: \"Monkeys Spinning Monkeys\", \"Easy Lemon\", \"Fluffing a Duck\", \"Life of Riley\" by Kevin MacLeod (incompetech.com) · Licensed under Creative Commons: By Attribution 4.0 License · http://creativecommons.org/licenses/by/4.0/'(量出寬度 > 1240 時改兩行, 中線 692 / 708, 不要縮到 10 px 以下)。t = 開始畫面已過秒數(閒置也一直增加)。右上角 (1228, 12, 40, 40) 留給 drawSoundIcon(動態範圍 x 235~1118、y 104~636, 碰不到)。不再使用標題子集字型: 刪掉 art.js 內嵌的兩個 woff2(base64)、FontFace 註冊與 titleWords。開始畫面不出音效。touch 缺值時當 false",
     "drawLevelBanner": "開場橫幅, 框 480 × 100(畫面座標), (x, y) 為左上; 每關位置不同, 遊戲端照 spec 傳入: 1 (60,70)、2 (60,70)、3 (60,70)、4 (60,70)、5 (380,70); 都已驗算不蓋終點旗與門、不碰聲音圖示。半透明; 內容「第 level / levelCount 關」(≥ 16 px)、關名 title(遊戲端給字串, 美術畫)、newThing 小圖示; 淡入淡出時只改透明度、不位移不縮放(不畫到框外)。t: 0~1(全長 1.5 秒; 0~0.13 淡入、0.8~1 淡出), 只在橫幅存在期間呼叫。newThing: 'relay' | 'hook' | 'gate' | 'lift' | 'seesaw' 觸控模式: RD 在 translate(24, 80) scale(1.4) 下以 x 0、y 0 呼叫, 美術不必改",
     "drawTutorial": "新手教學提示泡泡(spec「新手教學」), 畫面層, 所有欄位都是畫面座標(遊戲端已把世界錨點 × 1.5)。每幀在所有世界層物件之上、drawHud 之下呼叫。泡泡: 圓角、淺色底深色字, 高 52、寬依字數最多 300, 字 16 px; 一行字 + keys 的鍵帽圖示; 尾巴尖端在 (ax, ay)。place 'above': 泡泡底緣在 ay − tail、水平置中於 ax; 'below': 泡泡頂緣在 ay + tail、水平置中於 ax; 'left': 泡泡右緣在 ax − tail、垂直置中於 ay; 'right': 泡泡左緣在 ax + tail、垂直置中於 ay。泡泡本體夾在 bounds 內(本輪改: 原本寫死的 x 12~1268、y 56~708 改讀 bounds; 電腦版遊戲端傳的值就是它), 夾邊後尾巴仍指向錨點。夾完再做 avoid 避讓(見 avoid)。pop 彈出、done 特效的縮放以(避讓後的)泡泡本體為準, 最大放大 1.15 倍; 星點最遠散到泡泡外 40 px 本輪新增 scale: 泡泡高、字、最寬、鍵帽、勾勾、星點散開距離、標示框脈動外擴都乘 scale(電腦版 1、觸控 1.4); tail、ax、ay、mark、avoid、avoid2、bounds 都是遊戲端算好的最終值, 美術不再乘。觸控模式所有欄位是畫布座標 0~CW",
     "stage": "教學階段 id: 'move' | 'die' | 'head' | 'hookAim' | 'hookFire' | 'gate' | 'lift' | 'seesaw' | 'stuck'(本輪刪 'button' 'whistle' 'chain' 'slow')。美術可依 stage 加小圖示, 不必",
@@ -433,10 +434,10 @@
     "avoid": "本輪新增。要避開的框 { x, y, w, h }(畫面座標), 電腦版遊戲端固定傳 { x: 1222, y: 50, w: 52, h: 52 }(聲音開關圖示 (1228, 56, 40, 40) 外擴 6); 觸控模式傳右上選單鍵的避讓框(畫布 OX + 1190, 42, 100, 100)。泡泡本體(不含尾巴、不含 pop / done 的放大與星點)排好並夾進畫布後, 若和 avoid 重疊: place 'above' / 'below' → 泡泡水平往左推到右緣 = avoid.x − 6(1216), 垂直不動; 'left' / 'right' → 泡泡往下推到頂緣 = avoid.y + avoid.h + 6(電腦版 108)。推完尾巴尖端仍在 (ax, ay), 尾巴根部留在泡泡近端邊上、離泡泡角至少 12, 可以斜。不重疊時完全照原排法",
     "drawUnlockPage": "ability: 'hook'(本輪起只有這一種; 第 1 關後出現); 畫滿整張畫布 1280 × 720, 文字歸美術畫: 標題「解鎖 鉤爪」與能力的大圖示(角色鉤住半空中的幽靈、鉤索拉直), 底部「空白 繼續」。右上角 (1228, 12) 留給 drawSoundIcon(使用者裁定: 解鎖頁照現況保留聲音開關圖示)",
     "drawEnding": "全破畫面(第 5 關後), 畫滿整張畫布 1280 × 720, 文字歸美術畫: 「全部通關!」、「空白 從第 1 關再玩」(不再有副標); t = 進入全破畫面後的秒數(遊戲端進畫面時歸零、暫停不加), 演出「接力衝線」: 1、2 號幽靈拖藍色軌跡與「你」依序從左跑進, 約 2.3 秒你碰旗 → 閃白、震動、左右下角彩帶炮、旗子處爆星火 → 標題蓋章落下 → 三代輪流跳、彩紙持續落下, 約 3.8 秒浮出「空白 從第 1 關再玩」; t 倒退時美術自動重播, 沒傳 t 畫定格; 底部音樂署名 4 行, 文字同 drawTitle。右上角 (1228, 12) 留給 drawSoundIcon。畫面上不出現哨子或關數 7",
-    "text ownership": "文字歸屬: HUD(關卡、代數、計時、鉤爪)、過關 / 失敗字樣、drawAim 的「Z 射出 / X 取消」、「等它跳」、開始畫面(兩行標題「接力吉尼」「-Jelly Jinni-」)、解鎖頁、全破畫面、音樂署名、暫停選單(含觸控版「點一下 選擇」)、開場橫幅的「第 N / 5 關」與關名, 全部由美術在各自的 draw 函式裡畫; 關名與教學泡泡文字由遊戲端傳字串",
+    "text ownership": "文字歸屬: HUD(關卡、代數、計時、鉤爪)、過關 / 失敗字樣、drawAim 的「Z 射出 / X 取消」、「等它跳」、開始畫面(開始提示「按任意按鍵開始遊戲」/ 觸控「點擊畫面開始遊戲」與一行音樂署名; 沒有標題字)、解鎖頁、全破畫面、音樂署名、暫停選單(含觸控版「點一下 選擇」)、開場橫幅的「第 N / 5 關」與關名, 全部由美術在各自的 draw 函式裡畫; 關名與教學泡泡文字由遊戲端傳字串",
     "draw order": "每幀(遊玩畫面): [世界層; 電腦版 scale 1.5, 觸控模式 scale 2.1 + translate(−camX, −camY)] drawBackground → 平台 / 牆 / 尖刺 / 開關 / 升降台 / 門 / 翹翹板 / 旗 → drawGhostPath → drawGhost → drawHook → drawPlayer → drawAim → [畫面層] drawTutorial → drawGoalArrow(觸控模式才有)→ drawHud → drawLevelBanner → drawPauseMenu(暫停時) → drawSoundIcon(電腦版才有)",
-    "renamed": "本輪 state 欄位改動(沒有欄位改名, 舊名 → 新名: 無): 新增 drawGoalArrow; drawTitle 構圖整個換(t 意義不變, 仍是已過秒數)並加 vx/vy/vw/vh; drawUnlockPage、drawEnding 加 vx/vy/vw/vh; drawPauseMenu 加 touch、vx/vy/vw/vh; drawHud 加 w、h; drawTutorial 加 scale、bounds 並補 avoid2; drawAim 加 topY。新欄位缺值時一律退回電腦版的值, 舊版 art 漏讀也只是觸控模式不對, 電腦版不受影響",
-    "changed": "打磨第 10 輪: 開始畫面改「接力跑道」(兩行標題 + 三代跳接動態 + 內嵌標題字型); 觸控模式放大 1.4 倍 + 跟隨鏡頭 + 用滿畫布寬、新增 drawGoalArrow、HUD / 泡泡 / 橫幅 / 暫停選單放大; 觸控模式暫停選單可直接點; jjState 加 hookable(見 renamed)。(第 9 輪: 收成五關、移除起跑哨、泡泡 avoid、靜音圖示不用紅、只畫設計區; 第 8 輪: 鏡頭拉近、世界層 / 畫面層、HUD 高 48; 第 7 輪: 改 16:9 橫式, 新增 drawSoundIcon、drawPauseMenu; 第 6 輪: jump 鍵帽改 ↑; 第 5 輪: 新增 drawTitle、drawTutorial; 第 4 輪: drawSeesaw 加 swing; 第 3 輪: drawGhost 加 hookAir, drawHud 加 timeLeft、timeMax)",
+    "renamed": "第 11 輪 state 欄位改動(沒有欄位改名, 舊名 → 新名: 無): drawTitle 新增 touch(布林, 缺值當 false); t、vx/vy/vw/vh 意義不變; titleLoop 3.6 → 9.0。其他函式都沒動。/ 第 10 輪(沒有欄位改名): 新增 drawGoalArrow; drawTitle 構圖整個換(t 意義不變, 仍是已過秒數)並加 vx/vy/vw/vh; drawUnlockPage、drawEnding 加 vx/vy/vw/vh; drawPauseMenu 加 touch、vx/vy/vw/vh; drawHud 加 w、h; drawTutorial 加 scale、bounds 並補 avoid2; drawAim 加 topY。新欄位缺值時一律退回電腦版的值, 舊版 art 漏讀也只是觸控模式不對, 電腦版不受影響",
+    "changed": "打磨第 11 輪: 只改開始畫面——拿掉標題文字與標題字型, 改成放大 4.5 倍的迷你關卡上演「第 1 代先死 → 第 2 代踩幽靈上高台碰旗」9 秒循環, 底下一行「按任意按鍵開始遊戲」(觸控「點擊畫面開始遊戲」)+ 一行署名; drawTitle 加 touch; 開始輸入改任意鍵 / 點擊(RD, 見 spec「開始畫面 → 開始輸入」)。其他函式不變。(第 10 輪: 開始畫面改「接力跑道」(兩行標題 + 三代跳接動態 + 內嵌標題字型); 觸控模式放大 1.4 倍 + 跟隨鏡頭 + 用滿畫布寬、新增 drawGoalArrow、HUD / 泡泡 / 橫幅 / 暫停選單放大; 觸控模式暫停選單可直接點; jjState 加 hookable(見 renamed)。(第 9 輪: 收成五關、移除起跑哨、泡泡 avoid、靜音圖示不用紅、只畫設計區; 第 8 輪: 鏡頭拉近、世界層 / 畫面層、HUD 高 48; 第 7 輪: 改 16:9 橫式, 新增 drawSoundIcon、drawPauseMenu; 第 6 輪: jump 鍵帽改 ↑; 第 5 輪: 新增 drawTitle、drawTutorial; 第 4 輪: drawSeesaw 加 swing; 第 3 輪: drawGhost 加 hookAir, drawHud 加 timeLeft、timeMax)",
     "sounds": "事件名對應 spec「音效清單」; 本輪沒有增刪。aimCharge 是瞄準蓄力期間持續播放、音高隨 charge 升高的聲音, 蓄力滿、離開瞄準或打開暫停選單時停。同一瞬間的疊播 / 擇一規則見 spec",
     "music": "title: 開始畫面 / 解鎖頁; play: 遊玩中(含開場橫幅期間), 瞄準與暫停選單時降到約 30% 並悶化; replay: 過關回放; ending: 全破畫面(第 5 關後)。沿用四首, 不換。靜音鍵 M 同時關閉音效與音樂。背景音樂 CC BY 4.0, 署名由美術畫在 drawTitle 與 drawEnding 底部",
     "touch": "本輪新增: 觸控模式只改顯示。art.js 已有的觸控放大(TOUCH_FS 21、TOUCH_ICON 30、世界層鍵帽 HK 1.9、路線點放大等)是為 1.5 倍世界設計的; 本輪世界倍率變 2.1, 世界層的觸控放大係數可以下修(例 HK 1.9 → 約 1.35、路線點回到接近電腦版), 但畫布上的實際大小仍要 ≥ 字 21 px、鍵帽 / 小圖示 30 px。drawHud 在 RD 的 scale(1.4) 下畫, 字已經放大 1.4 倍, HUD 內不要再套 TOUCH_FS 造成雙重放大(放大後 ≥ 21 px 即可: HUD 單位 15 以上)",
@@ -516,5 +517,34 @@
       56
     ]
   },
-  "titleLoop": 3.6
+  "titleLoop": 9.0,
+  "titleScene": {
+    "scale": 4.5,
+    "charSize": [
+      90,
+      126
+    ],
+    "groundTop": 600,
+    "groundBottom": 636,
+    "spikes": [
+      600,
+      546,
+      90,
+      54
+    ],
+    "cliffLeft": 700,
+    "cliffTop": 330,
+    "goal": [
+      1000,
+      150,
+      108,
+      180
+    ],
+    "spawnFeet": [
+      280,
+      600
+    ],
+    "hintY": 668,
+    "creditsY": 704
+  }
 }

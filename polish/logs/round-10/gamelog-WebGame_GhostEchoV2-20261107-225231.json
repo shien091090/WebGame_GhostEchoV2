@@ -1,0 +1,15 @@
+{
+ "project": "WebGame_GhostEchoV2",
+ "build": "polish-10",
+ "sessionStart": "2026-11-07T22:49:25+08:00",
+ "downloadedAt": "2026-11-07T22:52:31+08:00",
+ "reason": "complete",
+ "events": [
+  {
+   "type": "game_complete",
+   "t": 185205,
+   "level": null,
+   "totalTime": 185205
+  }
+ ]
+}

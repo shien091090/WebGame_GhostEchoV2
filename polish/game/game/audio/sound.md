@@ -1,6 +1,11 @@
-# 幽影接力 音效說明(polish-10)
+# 幽影接力 音效說明(polish-11)
 
-相對 polish-9: **音效、音樂完全不變**(spec 打磨第 10 輪「音效 30 個與音樂 4 首, 本輪沒有新增或刪除聲音事件」)。30 個事件名、4 首曲名、opts、素材、音量、呼叫時機都照舊, RD 不用改接法。只補一條 spec 本輪寫明的規則到「同時觸發」表: 觸控模式直接點暫停選單選項時, 點「繼續」只叫 pauseClose、點「重來」只叫 restart, 不叫 menuMove(和鍵盤確認相同)。開始畫面的「接力跑道」動態不出音效, 只有 title 音樂。
+相對 polish-10: **音效、音樂完全不變**(spec 打磨第 11 輪「音效 30 個與音樂 4 首」不動, 只改開始畫面)。30 個事件名、4 首曲名、opts、素材、音量都照舊, RD 不用改接法。只改兩處文字:
+- `uiPage` 的時機: 開始畫面改成「**任意鍵**(M、修飾鍵、F1~F12、快捷鍵組合、按住重複除外)或**滑鼠 / 觸控點擊放開**(pointerup)」就開始, 不再限空白鍵; 其他畫面照舊只認空白鍵
+- `Sound.init()` 要在開始的那一下呼叫, 不論是 keydown 還是 pointerup(兩者都是瀏覽器認可的使用者操作, 能解鎖出聲); 順序: `Sound.init()` → `Sound.play('uiPage')` → `Sound.playMusic('play')` → 第 1 代出生 `Sound.play('spawn')`, 同一幀。開始畫面上按 M 只切靜音、不開始, 那一下也可以先呼叫 `Sound.init()`(重複呼叫無害), 取消靜音後 title 音樂才聽得到
+- 開始畫面的「先死一次」9 秒動態(第 1 代死亡、踩頭、碰旗)**不出任何音效**, 只有 title 音樂; RD 不要在動態裡叫 death / headStand / levelClear
+
+(polish-10 相對 polish-9: **音效、音樂完全不變**(spec 打磨第 10 輪「音效 30 個與音樂 4 首, 本輪沒有新增或刪除聲音事件」)。30 個事件名、4 首曲名、opts、素材、音量、呼叫時機都照舊, RD 不用改接法。只補一條 spec 本輪寫明的規則到「同時觸發」表: 觸控模式直接點暫停選單選項時, 點「繼續」只叫 pauseClose、點「重來」只叫 restart, 不叫 menuMove(和鍵盤確認相同)。開始畫面的「接力跑道」動態不出音效, 只有 title 音樂。)
 
 (polish-9 相對 polish-8: **只刪不加**(spec 打磨第 9 輪「音效刪 6 個, 音樂四首不變」)。
 - 刪除事件 `whistle`、`buttonPress`、`crusherRise`、`crusherWarn`、`crusherSlam`、`crush`, 連同音檔一起刪掉(sound.js 也不再內嵌)。RD 若還呼叫這幾個名字, 會被當成未知事件靜默忽略, 不會報錯
@@ -34,7 +39,7 @@
 ## 接法(RD 必讀)
 
 - `index.html` 在 `game.js` **之前**載入: `<script src="audio/sound.js"></script>`(全域 `window.Sound`, 不是 module)
-- 第一次按任何鍵時呼叫 `Sound.init()`(重複呼叫無害)。init 之前的 `play` 一律靜默丟棄; **`playMusic` 在 init 前呼叫會被記住, init 時才開始播**, 所以開網頁時可以直接 `Sound.playMusic('title')`
+- 第一次按任何鍵、或開始畫面點擊放開(pointerup)時呼叫 `Sound.init()`(重複呼叫無害)。init 之前的 `play` 一律靜默丟棄; **`playMusic` 在 init 前呼叫會被記住, init 時才開始播**, 所以開網頁時可以直接 `Sound.playMusic('title')`
 - M 鍵: `Sound.setMuted(!Sound.isMuted())`; 聲音開關圖示(`drawSoundIcon`)用 `Sound.isMuted()` 取值。靜音狀態只存在記憶體(本次開網頁期間保留)
 - 未知事件名 / 曲名靜默忽略, 不會丟例外
 - sound.js 約 13.6 MB(音訊資料以 base64 內嵌, 才能在 file:// 下用 Web Audio 做瞄準時的悶化), 載入時解碼音樂約需不到 1 秒; 解碼完成前要求的曲子會在解碼後自動開始
@@ -76,7 +81,7 @@
 | `levelFail` | levelFail | 進入失敗畫面那一刻(第 3 代死亡演出結束) | — | sfx_level_fail.wav | 0.50 | 否 |
 | `restart` | restart(改) | 暫停選單選「重來」那一刻。**只叫 restart, 不要再叫 pauseClose**; 會自動解除暫停 / 瞄準的悶化、停掉保留的蓄力聲 | — | sfx_restart.wav | 0.45 | 否 |
 | `unlock` | unlock | 解鎖頁出現那一刻 | — | sfx_unlock.wav | 0.60 | 否 |
-| `uiPage` | uiPage | 開始畫面按空白鍵開始、解鎖頁按空白鍵繼續、全破畫面按空白鍵回第 1 關、過關回放中按空白鍵進下一關(第 5 關則進全破畫面, 同一幀 `playMusic('ending')`)、失敗畫面按空白鍵再試一次。接著出生的第 1 代照叫 spawn | — | sfx_ui_page.wav | 0.40 | 否 |
+| `uiPage` | uiPage | 開始畫面按任意鍵 / 點擊放開開始(同幀 `playMusic('play')`)、解鎖頁按空白鍵繼續、全破畫面按空白鍵回第 1 關、過關回放中按空白鍵進下一關(第 5 關則進全破畫面, 同一幀 `playMusic('ending')`)、失敗畫面按空白鍵再試一次。接著出生的第 1 代照叫 spawn | — | sfx_ui_page.wav | 0.40 | 否 |
 | `tutorialShow` | tutorialShow(新) | 教學泡泡出現那一刻(pop 從 0 開始那一幀), 每個階段一次; 條件式階段再次出現也叫 | — | sfx_tutorial_show.wav(約 330→490 Hz 短「啵」, 60 毫秒, 加了衰減) | 0.30 | 否 |
 | `tutorialKey` | tutorialKey(新) | 第 1 階段某個鍵帽第一次打勾那一幀(pressed 由 false 變 true), 每個鍵一次 | `index`: 0 / 1 / 2 = **這是第幾個打勾的鍵**(依打勾先後, 不是哪一個鍵); 音高 Do → Mi → Sol 依序升高。可省: 省略時自動依呼叫次數 0、1、2 往上, `tutorialShow` 時歸零 | sfx_tutorial_key1 / 2 / 3.wav(金幣「叮」, 960 / 1225 / 1425 Hz) | 0.32 | 否 |
 | `tutorialDone` | tutorialDone(新) | 教學階段完成那一刻(done 從 0 開始那一幀) | — | sfx_tutorial_done.wav(上行琶音)+ 0.12 秒後 sfx_tutorial_sparkle.wav(高音「叮叮」) | 0.28 / 0.18 | 否 |
@@ -177,7 +182,9 @@ Sound.play('restart');             // 只叫這個, 不叫 pauseClose; 接著第
 | 連按 ↑ / ↓: menuMove 反覆 | 0.04 秒內重複只響一次; 只有 49 毫秒、音量 0.28, 不會吵 |
 | 暫停選單開著時按 M | 靜音照常切換; 選單開關的悶化狀態不受影響 |
 | 觸控模式直接點暫停選單選項 | 點「繼續」只叫 pauseClose、點「重來」只叫 restart(同鍵盤確認), **不叫** menuMove; 悶化與蓄力聲的恢復 / 清除照鍵盤時一樣自動處理 |
-| 開始畫面「接力跑道」循環動態 | 不出任何音效, 只有 title 音樂 |
+| 開始畫面「先死一次」9 秒循環動態(第 1 代死亡、踩頭、碰旗) | 不出任何音效, 只有 title 音樂; 不要叫 death / headStand / levelClear |
+| 開始畫面按任意鍵 / 點擊開始: init + uiPage + playMusic('play') + 第 1 代 spawn 同一幀 | 照叫(疊播); title 淡出 0.6 秒、play 淡入; uiPage 0.06 秒短「嗒」在前, spawn 上揚在後 |
+| 觸控模式點「確認」鍵開始(touchstart 送空白鍵)後又收到 pointerup | spec 已保證 pointerup 時已不是開始畫面, 只會叫一次 uiPage; 若真的重複叫, uiPage 0.02 秒內重複只響一次 |
 | aimStart 與 pauseOpen 聽起來的差別 | aimStart 是高低交錯的「嗚哇」(約 950 / 460 Hz 來回), pauseOpen 是一路往上的掃頻(1.1 → 1.8 kHz), 像選單打開 |
 
 ## 理念或經驗落實
@@ -194,4 +201,6 @@ Sound.play('restart');             // 只叫這個, 不叫 pauseClose; 接著第
 - **polish-8 沿用任務**: spec 本輪聲音不變, 照「沿用任務保留上一版素材與音量」原則, 43 個檔與 sound.js 的資料、音量、邏輯全部不動(只在檔頭加版本註記), 冒煙測試重跑一次確認 36 個事件與 4 首曲名都對得上 interface.json
 - **polish-9 只刪不加**: spec 刪掉起跑哨與壓板的 6 個事件, 依「清單沒列的不做」把事件定義、內嵌資料與 6 個音檔一起刪掉(spec 允許留著, 但留著會讓 credits 列數與實際用到的檔對不上); 其餘 30 個事件照「沿用任務保留上一版素材與音量」原則一個位元組都沒動。冒煙測試確認 30 個事件、4 首曲名對得上 interface.json, 已刪的 6 個名字呼叫時靜默不出聲
 - **polish-10 沿用任務**: spec 本輪只改開始畫面與手機觸控版的顯示, 聲音不變; 照「沿用任務保留上一版素材與音量」原則, 37 個檔與 sound.js 的資料、音量、邏輯全部不動(只在檔頭加版本註記), 重跑語法檢查與冒煙測試, 確認 30 個事件、4 首曲名對得上 interface.json
+- **polish-11 沿用任務**: spec 本輪只重做開始畫面與開始方式, 聲音不變; 照「沿用任務保留上一版素材與音量」原則, 37 個檔與 sound.js 的資料、音量、邏輯全部不動(只在檔頭加版本註記), 只把 uiPage 的呼叫時機與 init 時機改成「任意鍵 / 點擊」。重跑語法檢查與冒煙測試(含 init 前呼叫、同幀 init + uiPage + 換曲 + spawn、無 Web Audio 退回), 30 個事件、4 首曲名對得上 interface.json
+- **即時回饋音要立刻出聲**也適用新的開始方式: 第一下既是 init 又是觸發 uiPage, 音效是同步填好的 PCM, 不用等解碼, 點擊開始也是當下就有「嗒」
 - spec 要求「title 不要有點毛」: 換成風格欄標 Bright / Humorous / Uplifting 的曲子, 沒有選 Mysterious / Dark 的

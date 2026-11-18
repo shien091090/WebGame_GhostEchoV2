@@ -1963,7 +1963,6 @@
       ctx.save();
       bgFill(ctx, v);
       titleGlow(ctx);
-      titleWords(ctx);
       titleRun(ctx, t % TITLE_LOOP);
       // 空白 開始(閃爍, 中線 y 600)
       var blink = 0.35 + 0.65 * (0.5 + 0.5 * Math.cos(t * Math.PI * 2 / 1.2));
