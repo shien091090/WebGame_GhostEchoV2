@@ -1,4 +1,4 @@
-/* 接力吉尼(Jelly Jinni) 打磨版第 11 輪(開始畫面任意鍵 / 點擊開始) — 16:9 橫式 1280×720, 五關; 邏輯 + 嵌入式新手教學 + 暫停選單 + 呼叫 Art / Sound; 觸控模式放大 1.4 倍跟隨鏡頭 */
+/* 接力吉尼(Jelly Jinni) 打磨版第 12 輪(開始畫面改主視覺小動畫; 開始輸入沿用任意鍵 / 點擊) — 16:9 橫式 1280×720, 五關; 邏輯 + 嵌入式新手教學 + 暫停選單 + 呼叫 Art / Sound; 觸控模式放大 1.4 倍跟隨鏡頭 */
 (function () {
   'use strict';
 
@@ -23,7 +23,7 @@
   var ZOOM = 1.5, WW = 1280 / 1.5, WH = 480;
   var SND_ICON_PLAY = { x: 1228, y: 56 }, SND_ICON_MENU = { x: 1228, y: 12 };
 
-  var BUILD = 'polish-11';
+  var BUILD = 'polish-12';
   var BANNER_T = 1.5, TUT_FX_T = 0.8, TUT_GAP = 0.4, TUT_POP_T = 0.25;
   // (本輪沒有需要的佔位圖形)
 
