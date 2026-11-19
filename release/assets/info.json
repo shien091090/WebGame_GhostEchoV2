@@ -1,10 +1,12 @@
 {
   "code": "jelly-jinni",
-  "name": "接力吉尼(Jelly Jinni)",
+  "tag": "平台跳躍＋接力＋解謎",
+  "pitch": "靠死亡推進關卡，和死前的自己一同解謎",
   "intro": "死掉不是結束！和上一代的自己攜手，接力跳躍、破解機關，共同抵達終點吧!",
   "time": "5–10 分鐘",
   "color": "#4776c3",
   "textColor": "#ffffff",
   "ratio": "16:9",
-  "mobileRatio": "16:9-21:9"
+  "mobileRatio": "16:9-21:9",
+  "name": "接力吉尼(Jelly Jinni)"
 }
